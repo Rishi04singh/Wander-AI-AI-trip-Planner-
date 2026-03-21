@@ -11,34 +11,46 @@ const menuOptions = [
 
 function Header() {
   return (
-    <header className="w-full flex items-center justify-between px-10 py-4 bg-white/80 backdrop-blur-md border-b shadow-sm sticky top-0 z-50">
+    <header className="fixed top-0 w-full flex items-center justify-between px-6 md:px-12 py-4 
+    bg-black/20 backdrop-blur-xl border-b border-white/10 z-50 transition-all duration-300">
 
       {/* Logo */}
-      <div className="flex items-center gap-2 cursor-pointer">
-        <Image src="/logo.svg" alt="Logo" width={34} height={34} />
-        <h2 className="font-bold text-2xl text-gray-800 tracking-tight">
-          AI Trip Planner
-        </h2>
-      </div>
+      <Link href="/" className="flex items-center gap-3 group">
+        <div className="p-2 bg-indigo-500/10 rounded-xl group-hover:bg-indigo-500/20 transition-colors">
+          <Image src="/logo.svg" alt="Logo" width={28} height={28} className="drop-shadow-lg" />
+        </div>
 
-      {/* Menu Options */}
-      <nav className="flex items-center gap-8">
+        <h2 className="font-bold text-2xl tracking-tight text-white drop-shadow-md">
+          AI <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400">Trip Planner</span>
+        </h2>
+      </Link>
+
+      {/* Menu */}
+      <nav className="hidden md:flex items-center gap-8 bg-white/5 px-8 py-2.5 rounded-full border border-white/10 backdrop-blur-md">
         {menuOptions.map((option, index) => (
-          <Link href={option.path} key={index}>
-            <span className="text-gray-700 font-medium hover:text-blue-600 transition-all duration-300 hover:scale-105 relative group">
+          <Link key={index} href={option.path}>
+            <span className="relative font-medium text-sm text-gray-300 hover:text-white transition duration-300 cursor-pointer group tracking-wide">
+
               {option.name}
 
-              {/* underline animation */}
-              <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full"></span>
+              {/* animated underline */}
+              <span className="absolute left-0 -bottom-1.5 h-0.5 w-0 bg-indigo-400 transition-all duration-300 group-hover:w-full rounded-full"></span>
+
             </span>
           </Link>
         ))}
       </nav>
 
-      {/* Get Started Button */}
-      <Button className="rounded-xl px-6 py-2 text-base font-semibold bg-blue-500 hover:bg-blue-600 transition-all shadow-md hover:shadow-lg hover:scale-105">
+      {/* Button */}
+      <Button
+        className="rounded-xl px-6 py-2 font-semibold text-sm
+        bg-white text-black hover:bg-gray-200
+        shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)]
+        transition-all duration-300 hover:scale-[1.02]"
+      >
         Get Started
       </Button>
+
     </header>
   );
 }
