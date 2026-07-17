@@ -37,22 +37,6 @@ An AI-powered travel planner that creates personalized trip itineraries based on
 
 🤖 Powered by Google Gemini AI
 
----
-
-## 📸 Screenshots
-
-| Home | AI Planner |
-|------|------------|
-| ![](images/home.png) | ![](images/planner.png) |
-
-| Generated Trip | Destination Details |
-|---------------|---------------------|
-| ![](images/result.png) | ![](images/details.png) |
-
-> Replace these images with your own screenshots.
-
----
-
 # 🛠️ Tech Stack
 
 | Frontend | AI | Styling |
