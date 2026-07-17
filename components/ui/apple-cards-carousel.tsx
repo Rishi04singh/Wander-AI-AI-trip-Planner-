@@ -237,9 +237,9 @@ export const Card = ({
       <motion.button
         layoutId={layout ? `card-${card.title}` : undefined}
         onClick={handleOpen}
-        className="relative z-10 flex h-[60vh] w-[85vw] max-w-[400px] md:max-w-none md:h-[70vh] md:w-[60vw] lg:w-[50vw] flex-col items-start justify-end overflow-hidden rounded-[2.5rem] bg-gray-100 dark:bg-neutral-900 group"
+        className="relative z-10 flex h-[60vh] w-[85vw] max-w-100 md:max-w-none md:h-[70vh] md:w-[60vw] lg:w-[50vw] flex-col items-start justify-end overflow-hidden rounded-[2.5rem] bg-gray-100 dark:bg-neutral-900 group"
       >
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-1/2 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-1/2 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
         <div className="relative z-40 p-6 md:p-10 w-full text-left">
           <motion.p
             layoutId={layout ? `category-${card.category}` : undefined}

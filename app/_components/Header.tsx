@@ -1,7 +1,10 @@
+"use client"
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import { useRouter, usePathname } from "next/navigation";
 
 const menuOptions = [
   { name: "Home", path: "/" },
@@ -10,9 +13,14 @@ const menuOptions = [
 ];
 
 function Header() {
+  const { user } = useUser();
+  const router = useRouter();
+  const path=usePathname();
+  console.log(path);
+
   return (
     <header className="fixed top-0 w-full flex items-center justify-between px-6 md:px-12 py-4 
-    bg-black/20 backdrop-blur-xl border-b border-white/10 z-50 transition-all duration-300">
+    bg-black/20 backdrop-blur-xl border-b border-white/10 z-50 transition-all duration-300 print:hidden">
 
       {/* Logo */}
       <Link href="/" className="flex items-center gap-3 group">
@@ -21,7 +29,7 @@ function Header() {
         </div>
 
         <h2 className="font-bold text-2xl tracking-tight text-white drop-shadow-md">
-          AI <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400">Trip Planner</span>
+          AI <span className="text-transparent bg-clip-text bg-linear-to-r from-indigo-400 to-blue-400">Trip Planner</span>
         </h2>
       </Link>
 
@@ -41,15 +49,46 @@ function Header() {
         ))}
       </nav>
 
-      {/* Button */}
-      <Button
-        className="rounded-xl px-6 py-2 font-semibold text-sm
-        bg-white text-black hover:bg-gray-200
-        shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)]
-        transition-all duration-300 hover:scale-[1.02]"
-      >
-        Get Started
-      </Button>
+      {/* Buttons */}
+      <div className="flex items-center gap-4">
+        {!user ? (
+          <SignInButton mode="modal">
+            <Button
+              className="rounded-xl px-6 py-2 font-semibold text-sm
+              bg-white text-black hover:bg-gray-200
+              shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)]
+              transition-all duration-300 hover:scale-[1.02]"
+            >
+              Get Started
+            </Button>
+          </SignInButton>
+        ) : (
+          <div className="flex items-center gap-4">
+            {path === '/create-new-trip' ? (
+              <Button
+                onClick={() => router.push('/my-trips')}
+                className="rounded-xl px-6 py-2 font-semibold text-sm
+                  bg-white text-black hover:bg-gray-200
+                  shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)]
+                  transition-all duration-300 hover:scale-[1.02]"
+              >
+                My Trips
+              </Button>
+            ) : (
+              <Button
+                onClick={() => router.push('/create-new-trip')}
+                className="rounded-xl px-6 py-2 font-semibold text-sm
+                  bg-white text-black hover:bg-gray-200
+                  shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)]
+                  transition-all duration-300 hover:scale-[1.02]"
+              >
+                Create New trip
+              </Button>
+            )}
+            <UserButton appearance={{ elements: { avatarBox: "h-10 w-10 border border-white/20" } }} />
+          </div>
+        )}
+      </div>
 
     </header>
   );

@@ -7,6 +7,8 @@ import { Send, Globe2, Compass, Gem, Mountain, ArrowDown, ChevronRight, ChevronL
 import { motion, AnimatePresence } from "motion/react";
 import { HeroVideoDialog } from "@/components/ui/hero-video-dialog";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 
 const suggestions = [
   {
@@ -48,6 +50,16 @@ const backgrounds = [
 
 function HeroCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const router = useRouter();
+  const { user } = useUser();
+
+  const onSend = () => {
+    if (!user) {
+      router.push("/sign-in?redirect_url=/create-new-trip");
+      return;
+    }
+    router.push("/create-new-trip");
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -131,6 +143,7 @@ function HeroCarousel() {
               <div className="text-xs md:text-sm text-gray-400 font-medium">✨ Powered by AI</div>
               <Button
                 size="lg"
+                onClick={onSend}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl shadow-lg hover:shadow-indigo-500/25 transition-all px-8 py-6 gap-3 text-lg font-semibold"
               >
                 <span>Plan Trip</span>
@@ -150,6 +163,11 @@ function HeroCarousel() {
           {suggestions.map((suggestion, index) => (
             <div
               key={index}
+              onClick={() => {
+                if (suggestion.title === "Create New Trip") {
+                  onSend();
+                }
+              }}
               className="flex items-center gap-2 border border-white/10 px-5 py-2.5 rounded-full text-sm font-medium bg-black/30 backdrop-blur-md text-white hover:bg-white/10 hover:border-white/20 cursor-pointer transition-all shadow-lg"
             >
               {suggestion.icon}
