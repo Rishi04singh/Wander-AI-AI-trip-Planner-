@@ -1,36 +1,187 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
 
-## Getting Started
+# 🌍 Wander AI – AI Trip Planner
 
-First, run the development server:
+### ✈️ Plan Smarter. Travel Better. Powered by AI.
+
+<p>
+  <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black"/>
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white"/>
+  <img src="https://img.shields.io/badge/TailwindCSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Gemini_AI-4285F4?style=for-the-badge&logo=google&logoColor=white"/>
+</p>
+
+<p>
+An AI-powered travel planner that creates personalized trip itineraries based on your destination, budget, duration, and travel preferences.
+</p>
+
+</div>
+
+---
+
+## ✨ Features
+
+🌎 AI-generated personalized travel itineraries
+
+📅 Day-wise trip planning
+
+💰 Budget estimation
+
+📍 Destination recommendations
+
+🏨 Hotel suggestions
+
+🍽️ Food & local attraction recommendations
+
+⚡ Beautiful and responsive UI
+
+🤖 Powered by Google Gemini AI
+
+---
+
+## 📸 Screenshots
+
+| Home | AI Planner |
+|------|------------|
+| ![](images/home.png) | ![](images/planner.png) |
+
+| Generated Trip | Destination Details |
+|---------------|---------------------|
+| ![](images/result.png) | ![](images/details.png) |
+
+> Replace these images with your own screenshots.
+
+---
+
+# 🛠️ Tech Stack
+
+| Frontend | AI | Styling |
+|----------|----|----------|
+| React.js | Google Gemini API | Tailwind CSS |
+| Vite | AI Prompt Engineering | CSS |
+
+---
+
+## 🚀 Getting Started
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/Rishi04singh/Wander-AI-AI-trip-Planner-.git
+```
+
+### Move into Project
+
+```bash
+cd Wander-AI-AI-trip-Planner-
+```
+
+### Install Dependencies
+
+```bash
+npm install
+```
+
+### Run the Project
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📂 Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+📦 Wander-AI
+ ┣ 📂 src
+ ┃ ┣ 📂 components
+ ┃ ┣ 📂 pages
+ ┃ ┣ 📂 assets
+ ┃ ┣ 📜 App.jsx
+ ┃ ┗ 📜 main.jsx
+ ┣ 📂 public
+ ┣ 📜 package.json
+ ┣ 📜 vite.config.js
+ ┗ 📜 README.md
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🎯 Future Improvements
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- 🌦️ Live Weather Integration
+- 🗺️ Google Maps Integration
+- 💳 Travel Cost Calculator
+- ❤️ Save Favorite Trips
+- 📄 Export Itinerary as PDF
+- 🔐 User Authentication
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 💻 Installation Requirements
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Node.js
+- npm
+- Gemini API Key
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## ⭐ Why Wander AI?
+
+✔ Personalized AI Recommendations
+
+✔ Modern Responsive Design
+
+✔ Easy to Use
+
+✔ Fast & Lightweight
+
+✔ Perfect for Travelers
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!
+
+1. Fork the repository
+2. Create your feature branch
+
+```bash
+git checkout -b feature-name
+```
+
+3. Commit changes
+
+```bash
+git commit -m "Added new feature"
+```
+
+4. Push
+
+```bash
+git push origin feature-name
+```
+
+5. Open a Pull Request
+
+---
+
+## 👨‍💻 Developer
+
+**Rishi Singh**
+
+🌐 GitHub: https://github.com/Rishi04singh
+
+💼 LinkedIn: *(Add your LinkedIn URL here)*
+
+---
+
+<div align="center">
+
+### ⭐ If you like this project, don't forget to star the repository!
+
+Made with ❤️ by **Rishi Singh**
+
+</div>
