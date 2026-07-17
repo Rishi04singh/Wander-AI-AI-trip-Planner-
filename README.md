@@ -158,8 +158,6 @@ git push origin feature-name
 
 🌐 GitHub: https://github.com/Rishi04singh
 
-💼 LinkedIn: *(Add your LinkedIn URL here)*
-
 ---
 
 <div align="center">
