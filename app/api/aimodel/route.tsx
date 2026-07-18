@@ -35,9 +35,9 @@ Every single response from you MUST strictly use the JSON schema requested in th
 export async function POST(req: NextRequest) {
     try {
         const {messages} = await req.json();
-        const user = await currentUser();
         const {has} = await auth();
-        const hasPremiumAccess = has({ plan: 'monthly' });
+        const user = await currentUser();
+        const hasPremiumAccess = has({ plan: 'monthly' }) || has({ plan: 'premium' });
 
         // Fast limit check logic:
         // Any new interaction (messages.length <= 1) costs 5 tokens.
