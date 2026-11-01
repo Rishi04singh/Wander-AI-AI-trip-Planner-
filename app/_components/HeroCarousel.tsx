@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 
@@ -211,7 +212,7 @@ function HeroCarousel() {
           transition={{ duration: 0.8, delay: 0.1 }}
           className="space-y-4 max-w-4xl mx-auto"
         >
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white drop-shadow-2xl leading-[1.1] font-sans">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tight text-white drop-shadow-2xl leading-[1.15] font-sans">
             Plan Smarter. Travel Better.{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-sky-300 to-teal-200 drop-shadow-md">
               Built for Explorers.
@@ -257,6 +258,64 @@ function HeroCarousel() {
               </div>
             </button>
           ))}
+        </motion.div>
+
+        {/* Sathi Travel Intelligence & Trip Calendar Highlights (Prominent on Mobile & Desktop) */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.25 }}
+          className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-4xl mx-auto w-full text-left"
+        >
+          <Link
+            href="/sathi"
+            className="group relative flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/40 via-teal-950/20 to-neutral-900/90 backdrop-blur-xl hover:border-emerald-400 hover:bg-emerald-950/60 transition-all shadow-xl active:scale-98"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 group-hover:scale-110 transition-transform shrink-0">
+                <Bot className="w-5 h-5 animate-pulse" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm sm:text-base font-bold text-white group-hover:text-emerald-200 transition-colors">
+                    Sathi AI Suite 🧳
+                  </h4>
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                    4 ML Models
+                  </span>
+                </div>
+                <p className="text-xs text-gray-300/80 mt-0.5 line-clamp-1">
+                  Weather forecast, traffic delays & dynamic rescheduling
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-emerald-400 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
+          </Link>
+
+          <Link
+            href="/calendar"
+            className="group relative flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-950/40 via-orange-950/20 to-neutral-900/90 backdrop-blur-xl hover:border-amber-400 hover:bg-amber-950/60 transition-all shadow-xl active:scale-98"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 group-hover:scale-110 transition-transform shrink-0">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm sm:text-base font-bold text-white group-hover:text-amber-200 transition-colors">
+                    Calendar & Targets 📅
+                  </h4>
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    Tracker
+                  </span>
+                </div>
+                <p className="text-xs text-gray-300/80 mt-0.5 line-clamp-1">
+                  Monthly agenda, daily budget caps & trip milestones
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-amber-400 group-hover:translate-x-1 transition-transform shrink-0 ml-2" />
+          </Link>
         </motion.div>
 
         {/* DUAL PLANNER CONTAINER (AI Prompt & Quick Builder) */}
