@@ -120,9 +120,23 @@ export class WanderMLSuite {
     } else if (climate.condition === 'Extreme Heat') {
       packingList.push('Cotton Wear', 'Sunscreen & Sunglasses', 'Hydration Electrolytes');
       advisory = `☀️ Hot weather (Avg ${climate.avgTempC}°C). Plan tours early morning (7-10 AM) or post-sunset (5 PM onwards).`;
-    } else if (climate.condition === 'Snowy') {
-      packingList.push('Heavy Thermal Inners', 'Woolen Jackets & Gloves', 'Snow Boots');
-      advisory = `❄️ Freezing temperatures (Avg ${climate.avgTempC}°C). Snowfall risk on mountain passes!`;
+    } else if (climate.condition === 'Snowy' || climate.avgTempC < 0) {
+      if (climate.avgTempC <= -5) {
+        packingList.push(
+          'Heavy Down Jacket (-20°C Rated)',
+          'Merino Wool Thermals (3+ Sets)',
+          'Waterproof Snow Boots with Ice Grip',
+          'Insulated Fleece Gloves & Balaclava',
+          'UV Glacier Polarized Sunglasses',
+          'SPF 50+ Sunscreen & Cold Cream',
+          'Thermos Flask for Warm Water',
+          'High-Altitude Sickness Meds (Diamox)'
+        );
+        advisory = `❄️ Extreme sub-zero Himalayan freeze (Avg ${climate.avgTempC}°C, Min ${climate.minTempC}°C). High mountain passes (Khardung La & Chang La) have snowdrifts; lakes (Pangong Tso) and rivers are frozen solid (Chadar Ice Trek season). Heavy down jackets, layered thermals, and acclimatization are mandatory.`;
+      } else {
+        packingList.push('Heavy Thermal Inners', 'Woolen Jackets & Gloves', 'Waterproof Snow Boots', 'Moisturizer & Lip Balm');
+        advisory = `❄️ Freezing sub-zero temperatures (Avg ${climate.avgTempC}°C). Snowfall expected on high mountain passes!`;
+      }
     } else {
       packingList.push('Light Sweater / Jacket', 'Sunscreen');
       advisory = `🌤️ Pleasant weather (Avg ${climate.avgTempC}°C). Perfect time for exploring ghats, markets, and hill views!`;

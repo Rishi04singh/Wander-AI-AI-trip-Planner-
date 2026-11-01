@@ -61,7 +61,7 @@ export class KaggleDatasets {
       tags: ['Snow', 'Paragliding', 'Himalayas', 'River Rafting', 'Hill Station'],
       recommendedDays: 4,
       description: 'Lush snow-capped Himalayan valley famous for paragliding, skiing, and scenic mountain passes.',
-      weatherProfile: { peakSeasonTempC: 18, offSeasonTempC: -2, rainyMonths: [7, 8] },
+      weatherProfile: { peakSeasonTempC: 18, offSeasonTempC: 3, rainyMonths: [7, 8] },
       highlights: ['Solang Valley Adventures', 'Atal Tunnel Drive', 'Rohtang Pass Snow Point']
     },
     {
@@ -93,7 +93,7 @@ export class KaggleDatasets {
       tags: ['High Altitude', 'Pangong Lake', 'Monasteries', 'Biking', 'Valleys'],
       recommendedDays: 6,
       description: 'Land of high passes featuring crystal blue lakes, barren cold desert landscapes, and ancient gompas.',
-      weatherProfile: { peakSeasonTempC: 16, offSeasonTempC: -10, rainyMonths: [] },
+      weatherProfile: { peakSeasonTempC: 18, offSeasonTempC: -12, rainyMonths: [] },
       highlights: ['Pangong Tso Lake', 'Nubra Valley Sand Dunes', 'Magnetic Hill']
     },
     {
@@ -118,15 +118,15 @@ export class KaggleDatasets {
       state: 'Kerala',
       country: 'India',
       category: 'Relaxation',
-      avgDailyCostINR: 4000,
+      avgDailyCostINR: 4200,
       bestMonths: [9, 10, 11, 12, 1, 2, 3],
-      popularityScore: 96,
+      popularityScore: 95,
       rating: 4.9,
-      tags: ['Houseboat', 'Backwaters', 'Ayurveda', 'Palm Groves', 'Nature'],
+      tags: ['Houseboat', 'Backwaters', 'Ayurveda', 'Coconut Groves', 'Village Life'],
       recommendedDays: 4,
-      description: 'Serene emerald palm-fringed waterways, traditional luxury houseboats, and relaxing Ayurvedic spas.',
-      weatherProfile: { peakSeasonTempC: 28, offSeasonTempC: 31, rainyMonths: [6, 7] },
-      highlights: ['Alleppey Houseboat Cruise', 'Vembanad Lake Sunset', 'Marari Beach Walk']
+      description: 'Tranquil network of canals, lagoons, and emerald paddy fields navigated by traditional luxury houseboats.',
+      weatherProfile: { peakSeasonTempC: 28, offSeasonTempC: 31, rainyMonths: [6, 7, 8] },
+      highlights: ['Overnight Houseboat Cruise', 'Vembanad Lake Sunset', 'Ayurvedic Massage Therapy']
     },
     {
       id: 'ind_6',
@@ -136,13 +136,13 @@ export class KaggleDatasets {
       category: 'Spiritual',
       avgDailyCostINR: 2500,
       bestMonths: [10, 11, 12, 1, 2, 3],
-      popularityScore: 95,
-      rating: 4.7,
-      tags: ['Ganga Aarti', 'Ghats', 'Ancient City', 'Spiritual', 'Sarnath'],
+      popularityScore: 96,
+      rating: 4.8,
+      tags: ['Ganga Aarti', 'Ancient Temples', 'Ghats', 'Boat Rides', 'Silk Sarees'],
       recommendedDays: 3,
-      description: 'One of the world\'s oldest living cities, spiritual center on the sacred River Ganges with mesmerizing evening Aartis.',
-      weatherProfile: { peakSeasonTempC: 22, offSeasonTempC: 39, rainyMonths: [7, 8] },
-      highlights: ['Dashashwamedh Ganga Aarti', 'Sunrise Boat Ride on Ghats', 'Sarnath Buddhist Stupa']
+      description: 'The spiritual heart of India on the banks of holy river Ganga with mesmerizing evening aartis.',
+      weatherProfile: { peakSeasonTempC: 22, offSeasonTempC: 40, rainyMonths: [7, 8] },
+      highlights: ['Dashashwamedh Ghat Evening Aarti', 'Subah-e-Banaras Morning Boat Tour', 'Kashi Vishwanath Temple']
     },
     {
       id: 'ind_7',
@@ -150,13 +150,13 @@ export class KaggleDatasets {
       state: 'Rajasthan',
       country: 'India',
       category: 'Luxury',
-      avgDailyCostINR: 5000,
-      bestMonths: [9, 10, 11, 12, 1, 2, 3],
-      popularityScore: 96,
+      avgDailyCostINR: 4800,
+      bestMonths: [10, 11, 12, 1, 2, 3],
+      popularityScore: 97,
       rating: 4.9,
-      tags: ['Lakes', 'Romance', 'Palaces', 'Heritage', 'Sunset Boat Ride'],
+      tags: ['Lakes', 'Lake Palace', 'Heritage', 'Romance', 'Fine Dining'],
       recommendedDays: 3,
-      description: 'Venice of the East with romantic lake palaces, historic havelis, and sunset lake cruises.',
+      description: 'Romantic oasis surrounded by sparkling Aravalli hills, palatial marble palaces, and scenic lakes.',
       weatherProfile: { peakSeasonTempC: 24, offSeasonTempC: 36, rainyMonths: [7, 8] },
       highlights: ['City Palace Lake View', 'Lake Pichola Boat Ride', 'Jag Mandir Palace']
     },
@@ -173,7 +173,7 @@ export class KaggleDatasets {
       tags: ['White Water Rafting', 'Yoga', 'Ganga Ghats', 'Bungee Jumping', 'Spiritual'],
       recommendedDays: 3,
       description: 'Yoga capital of the world offering adrenaline white-water rafting, bungee jumps, and serene river ashrams.',
-      weatherProfile: { peakSeasonTempC: 25, offSeasonTempC: 12, rainyMonths: [7, 8] },
+      weatherProfile: { peakSeasonTempC: 25, offSeasonTempC: 14, rainyMonths: [7, 8] },
       highlights: ['Shivpuri Ganga River Rafting', 'Laxman Jhula', 'Triveni Ghat Evening Aarti']
     },
     {
@@ -205,7 +205,7 @@ export class KaggleDatasets {
       tags: ['Toy Train', 'Tea Gardens', 'Himalayan Views', 'Monasteries', 'Culture'],
       recommendedDays: 3,
       description: 'Queen of the Hills with UNESCO Toy Train heritage, fragrant tea gardens, and views of Mt. Kanchenjunga.',
-      weatherProfile: { peakSeasonTempC: 17, offSeasonTempC: 4, rainyMonths: [6, 7, 8] },
+      weatherProfile: { peakSeasonTempC: 17, offSeasonTempC: 6, rainyMonths: [6, 7, 8] },
       highlights: ['Tiger Hill Sunrise over Kanchenjunga', 'Darjeeling Himalayan Railway Toy Train', 'Batasia Loop']
     }
   ];
@@ -213,6 +213,60 @@ export class KaggleDatasets {
   // Helper to get historical climate predictions for Indian places
   static getClimateData(destinationName: string, month: number): KaggleClimateRecord {
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const lower = destinationName.toLowerCase();
+
+    // High Himalayan Cold Desert & Alpine Zone
+    const isLadakh = ['leh', 'ladakh', 'nubra', 'pangong', 'zanskar', 'spiti', 'kargil', 'dras'].some(k => lower.includes(k));
+    const isAlpine = ['gulmarg', 'sonamarg', 'auli', 'rohtang'].some(k => lower.includes(k));
+
+    if (isLadakh) {
+      const ladakhMap: Record<number, { avg: number; max: number; min: number; cond: KaggleClimateRecord['condition']; sev: KaggleClimateRecord['weatherSeverity']; prec: number; uv: number }> = {
+        1:  { avg: -13, max: -4, min: -20, cond: 'Snowy', sev: 'High', prec: 50, uv: 4 },
+        2:  { avg: -11, max: -3, min: -18, cond: 'Snowy', sev: 'High', prec: 45, uv: 5 },
+        3:  { avg: -2,  max: 5,  min: -8,  cond: 'Snowy', sev: 'Moderate', prec: 40, uv: 6 },
+        4:  { avg: 7,   max: 13, min: 1,   cond: 'Partly Cloudy', sev: 'Low', prec: 20, uv: 7 },
+        5:  { avg: 13,  max: 19, min: 5,   cond: 'Sunny', sev: 'Low', prec: 10, uv: 9 },
+        6:  { avg: 17,  max: 23, min: 9,   cond: 'Sunny', sev: 'Low', prec: 8,  uv: 10 },
+        7:  { avg: 20,  max: 26, min: 12,  cond: 'Sunny', sev: 'Low', prec: 15, uv: 10 },
+        8:  { avg: 19,  max: 25, min: 11,  cond: 'Sunny', sev: 'Low', prec: 18, uv: 9 },
+        9:  { avg: 14,  max: 21, min: 6,   cond: 'Sunny', sev: 'Low', prec: 8,  uv: 8 },
+        10: { avg: 8,   max: 15, min: -1,  cond: 'Sunny', sev: 'Low', prec: 10, uv: 6 },
+        11: { avg: -1,  max: 7,  min: -7,  cond: 'Partly Cloudy', sev: 'Moderate', prec: 25, uv: 5 },
+        12: { avg: -8,  max: 1,  min: -15, cond: 'Snowy', sev: 'High', prec: 40, uv: 4 },
+      };
+      const info = ladakhMap[month] || ladakhMap[2];
+      return {
+        destination: destinationName || 'Leh & Ladakh',
+        month,
+        monthName: monthNames[month - 1] || 'Feb',
+        avgTempC: info.avg,
+        maxTempC: info.max,
+        minTempC: info.min,
+        precipitationProb: info.prec,
+        humidityPct: [1, 2, 12].includes(month) ? 55 : 40,
+        uvIndex: info.uv,
+        condition: info.cond,
+        weatherSeverity: info.sev
+      };
+    }
+
+    if (isAlpine && [11, 12, 1, 2, 3].includes(month)) {
+      const alpineAvg = [1, 2].includes(month) ? -5 : -1;
+      return {
+        destination: destinationName,
+        month,
+        monthName: monthNames[month - 1] || 'Feb',
+        avgTempC: alpineAvg,
+        maxTempC: alpineAvg + 5,
+        minTempC: alpineAvg - 6,
+        precipitationProb: 65,
+        humidityPct: 75,
+        uvIndex: 4,
+        condition: 'Snowy',
+        weatherSeverity: 'High'
+      };
+    }
+
     const dest = this.DESTINATIONS.find(d => 
       d.name.toLowerCase().includes(destinationName.toLowerCase()) || 
       destinationName.toLowerCase().includes(d.name.toLowerCase())
@@ -222,9 +276,16 @@ export class KaggleDatasets {
     const isSummer = [4, 5, 6].includes(month);
     const isWinter = [11, 12, 1, 2].includes(month);
 
-    let avgTemp = dest ? (isSummer ? dest.weatherProfile.offSeasonTempC : dest.weatherProfile.peakSeasonTempC) : 24;
-    const monthModifier = Math.sin((month - 3) * (Math.PI / 6)) * 8;
-    avgTemp = Math.round(avgTemp + monthModifier);
+    let avgTemp = 24;
+    if (dest) {
+      if (isSummer) {
+        avgTemp = dest.weatherProfile.peakSeasonTempC + 6;
+      } else if (isWinter) {
+        avgTemp = dest.weatherProfile.offSeasonTempC;
+      } else {
+        avgTemp = dest.weatherProfile.peakSeasonTempC;
+      }
+    }
 
     let condition: KaggleClimateRecord['condition'] = 'Sunny';
     let precProb = 12;
