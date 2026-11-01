@@ -392,31 +392,31 @@ function ViewTrip() {
       </section>
 
       {/* Premium Footer */}
-      <footer className="py-24 text-center space-y-10 bg-gradient-to-br from-neutral-900 via-blue-950 to-neutral-900 rounded-[80px] relative overflow-hidden group shadow-[0_50px_100px_rgba(30,58,138,0.3)] print:hidden">
+      <footer className="py-16 md:py-24 text-center space-y-8 md:space-y-10 bg-gradient-to-br from-neutral-900 via-blue-950 to-neutral-900 rounded-[32px] md:rounded-[80px] relative overflow-hidden group shadow-[0_50px_100px_rgba(30,58,138,0.3)] print:hidden mx-2 md:mx-0">
          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none"></div>
-         <div className="relative z-10 space-y-8">
-            <div className="w-24 h-24 bg-white/10 backdrop-blur-2xl rounded-[35%] flex items-center justify-center mx-auto shadow-2xl border border-white/20 animate-bounce" style={{ animationDuration: '4s' }}>
-                <Globe className="h-12 w-12 text-blue-400 animate-pulse" />
+         <div className="relative z-10 space-y-6 md:space-y-8">
+            <div className="w-16 h-16 md:w-24 md:h-24 bg-white/10 backdrop-blur-2xl rounded-[35%] flex items-center justify-center mx-auto shadow-2xl border border-white/20 animate-bounce" style={{ animationDuration: '4s' }}>
+                <Globe className="h-8 w-8 md:h-12 md:w-12 text-blue-400 animate-pulse" />
             </div>
-            <div className="space-y-4">
-               <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter max-w-4xl mx-auto px-6">
+            <div className="space-y-3 md:space-y-4">
+               <h2 className="text-3xl md:text-5xl lg:text-7xl font-black text-white tracking-tighter max-w-4xl mx-auto px-4 md:px-6">
                   Ready for <span className="text-blue-400">Success</span> in {plan?.destination}?
                </h2>
-               <p className="text-xl text-neutral-400 font-medium max-w-2xl mx-auto px-8 leading-relaxed opacity-80 italic">
+               <p className="text-sm md:text-xl text-neutral-400 font-medium max-w-2xl mx-auto px-6 md:px-8 leading-relaxed opacity-80 italic">
                   "Adventure is worthwhile in itself." – Amelia Earhart
                </p>
             </div>
-             <div className="flex flex-wrap justify-center gap-6 px-10 print:hidden">
+             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 px-6 md:px-10 print:hidden">
                 <Button 
                    onClick={handleDownloadPDF}
-                   className="rounded-full px-12 h-20 bg-white text-blue-600 hover:bg-neutral-100 font-black text-2xl shadow-[0_20px_50px_rgba(255,255,255,0.2)] transition-all hover:scale-105 active:scale-95 group/btn"
+                   className="w-full sm:w-auto rounded-full px-8 md:px-12 h-14 md:h-20 bg-white text-blue-600 hover:bg-neutral-100 font-black text-lg md:text-2xl shadow-[0_20px_50px_rgba(255,255,255,0.2)] transition-all hover:scale-105 active:scale-95 group/btn"
                 >
-                   Download PDF <Sparkles className="ml-3 h-6 w-6 group-hover/btn:animate-spin" />
+                   Download PDF <Sparkles className="ml-3 h-5 w-5 md:h-6 md:w-6 group-hover/btn:animate-spin" />
                 </Button>
                 <Button 
                    onClick={handleShareTrip}
                    variant="outline" 
-                   className="rounded-full px-12 h-20 bg-transparent text-white border-2 border-white/20 hover:bg-white/10 font-black text-2xl backdrop-blur-md transition-all hover:scale-105 active:scale-95"
+                   className="w-full sm:w-auto rounded-full px-8 md:px-12 h-14 md:h-20 bg-transparent text-white border-2 border-white/25 hover:bg-white/10 font-black text-lg md:text-2xl backdrop-blur-md transition-all hover:scale-105 active:scale-95"
                 >
                    Share Trip ✈️
                 </Button>

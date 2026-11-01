@@ -130,6 +130,44 @@ function Header() {
                 </Link>
               );
             })}
+
+            {/* Mobile Actions */}
+            <div className="border-t border-white/10 pt-4 mt-2 flex flex-col gap-3">
+              {!user ? (
+                <SignInButton mode="modal">
+                  <Button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full rounded-xl py-3 font-semibold text-sm bg-gradient-to-r from-indigo-500 to-blue-600 text-white"
+                  >
+                    Get Started
+                  </Button>
+                </SignInButton>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {path === '/create-new-trip' ? (
+                    <Button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        router.push('/my-trips');
+                      }}
+                      className="w-full rounded-xl py-3 font-semibold text-sm bg-white/10 text-white"
+                    >
+                      My Trips
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        router.push('/create-new-trip');
+                      }}
+                      className="w-full rounded-xl py-3 font-semibold text-sm bg-gradient-to-r from-indigo-500 to-blue-600 text-white"
+                    >
+                      Create Trip
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
