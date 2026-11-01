@@ -402,7 +402,18 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
   const scrollRef = useRef<HTMLDivElement>(null);
   const initialParamsHandled = useRef(false);
 
-  // User trips & Free plan 3-credit tracking
+  // User trips & Free plan 3-credit tracking (Works for both Logged-In accounts & Guest/Anonymous browsers)
+  const [guestCount, setGuestCount] = useState(0);
+
+  useEffect(() => {
+    try {
+      const stored = parseInt(localStorage.getItem('wanderer_guest_trips') || '0', 10);
+      if (!isNaN(stored)) {
+        setGuestCount(stored);
+      }
+    } catch (e) {}
+  }, []);
+
   const activeEmail = userDetail?.email || user?.primaryEmailAddress?.emailAddress;
   const userTrips = useQuery((api as any).trips.getUserTrips, activeEmail ? { userEmail: activeEmail } : "skip");
 
@@ -410,7 +421,8 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
     (has && (has({ plan: 'monthly' }) || has({ plan: 'premium' }))) || 
     userDetail?.subscribed
   );
-  const tripCount = Array.isArray(userTrips) ? userTrips.length : 0;
+  const dbTripCount = Array.isArray(userTrips) ? userTrips.length : 0;
+  const tripCount = Math.max(dbTripCount, guestCount);
   const FREE_LIMIT = 3;
   const remainingCredits = Math.max(0, FREE_LIMIT - tripCount);
   const isLimitReached = !isSubscribed && tripCount >= FREE_LIMIT;
@@ -673,6 +685,12 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
         tripData: tripDataJSON,
         userSelection: currentTripData
       });
+
+      try {
+        const nextGuestCount = tripCount + 1;
+        localStorage.setItem('wanderer_guest_trips', String(nextGuestCount));
+        setGuestCount(nextGuestCount);
+      } catch (e) {}
 
       setGeneratedTripId(tripId);
       setMessages((prev: Message[]) => [...prev, {
