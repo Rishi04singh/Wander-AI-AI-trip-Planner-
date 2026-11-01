@@ -35,6 +35,7 @@ import { useUserDetail } from '../../provider';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser, useAuth } from '@clerk/nextjs';
 import Link from 'next/link';
+import { useLanguage } from "@/context/LanguageContext";
 
 type Message = {
   role: string;
@@ -391,6 +392,7 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
   const [generatedTripId, setGeneratedTripId] = useState<string | null>(null);
   const [activeModeTab, setActiveModeTab] = useState<string>("plan");
 
+  const { language, t } = useLanguage();
   const { user } = useUser();
   const { has } = useAuth();
   const { userDetail } = useUserDetail();
@@ -648,7 +650,8 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
 
     try {
       const result = await axios.post('/api/aimodel', {
-        messages: [{ role: 'user', content: finalTripPrompt }]
+        messages: [{ role: 'user', content: finalTripPrompt }],
+        language: language
       });
       
       if (result.data?.ui === 'limit') {
@@ -868,7 +871,8 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
 
       // General fallback to AI Model API
       const result = await axios.post('/api/aimodel', {
-        messages: [...messages, newMsg]
+        messages: [...messages, newMsg],
+        language: language
       });
 
       setMessages((prev: Message[]) => [...prev, {
@@ -902,7 +906,7 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Trip Planner</span>
+            <span>{t('tab_planner')}</span>
           </button>
 
           <button
@@ -914,7 +918,7 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
             }`}
           >
             <Compass className="w-3.5 h-3.5" />
-            <span>Inspire Me</span>
+            <span>{t('tab_inspire')}</span>
           </button>
 
           <button
@@ -926,7 +930,7 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
             }`}
           >
             <Gem className="w-3.5 h-3.5" />
-            <span>Hidden Gems</span>
+            <span>{t('tab_gems')}</span>
           </button>
 
           <button
@@ -938,7 +942,7 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
             }`}
           >
             <Mountain className="w-3.5 h-3.5" />
-            <span>Adventure</span>
+            <span>{t('tab_adventure')}</span>
           </button>
         </div>
 
@@ -946,7 +950,7 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
           {isSubscribed ? (
             <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               <Zap className="w-3 h-3 fill-emerald-400" />
-              Pro Unlimited
+              {t('chat_pro_unlimited')}
             </span>
           ) : (
             <Link
@@ -959,8 +963,8 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
               title="Click to view pricing & upgrade plans"
             >
               <Zap className={`w-3 h-3 ${isLimitReached ? 'text-rose-400 fill-rose-400' : 'text-indigo-400 fill-indigo-400'}`} />
-              <span>{remainingCredits}/{FREE_LIMIT} Free Credits</span>
-              {isLimitReached && <span className="font-bold underline text-[10px] ml-0.5">Upgrade</span>}
+              <span>{remainingCredits}/{FREE_LIMIT} {t('chat_credits')}</span>
+              {isLimitReached && <span className="font-bold underline text-[10px] ml-0.5">{t('chat_upgrade')}</span>}
             </Link>
           )}
 
@@ -1187,10 +1191,10 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
                       </div>
                       <div>
                         <h3 className="text-lg font-black text-white">
-                          Credit Points Finished ({FREE_LIMIT}/{FREE_LIMIT} Used)
+                          {t('limit_title')}
                         </h3>
                         <p className="text-xs text-neutral-300 max-w-sm mt-1 leading-relaxed">
-                          You have used all {FREE_LIMIT} free journeys included with the Free Starter Plan. Upgrade to our Monthly Pro or Premium plan to unlock unlimited journeys, personalized Sathi re-scheduling, and offline PDF exports!
+                          {t('limit_desc')}
                         </p>
                       </div>
 
@@ -1200,7 +1204,7 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
                           className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-rose-500 to-indigo-600 hover:from-rose-600 hover:to-indigo-700 text-white font-bold text-xs shadow-lg shadow-rose-500/20 transition-all text-center flex items-center justify-center gap-1.5 active:scale-95"
                         >
                           <Zap className="w-3.5 h-3.5 fill-white" />
-                          <span>Upgrade for More Credits</span>
+                          <span>{t('limit_btn')}</span>
                           <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
                       </div>

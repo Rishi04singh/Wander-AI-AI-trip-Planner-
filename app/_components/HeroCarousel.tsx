@@ -24,6 +24,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
+import { useLanguage } from "@/context/LanguageContext";
 
 const suggestions = [
   {
@@ -96,6 +97,7 @@ const backgrounds = [
 ];
 
 function HeroCarousel() {
+  const { language, t } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [promptText, setPromptText] = useState("");
   const [activeTab, setActiveTab] = useState<"ai_prompt" | "quick_book">("ai_prompt");
@@ -212,15 +214,24 @@ function HeroCarousel() {
           transition={{ duration: 0.8, delay: 0.1 }}
           className="space-y-4 max-w-4xl mx-auto"
         >
-          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tight text-white drop-shadow-2xl leading-[1.15] font-sans">
-            Plan Smarter. Travel Better.{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-sky-300 to-teal-200 drop-shadow-md">
-              Built for Explorers.
-            </span>
-          </h1>
+          {language === 'hi' ? (
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tight text-white drop-shadow-2xl leading-[1.2] font-sans">
+              सपनों की यात्रा.{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-sky-300 to-teal-200 drop-shadow-md">
+                AI के साथ कुछ ही सेकंडों में।
+              </span>
+            </h1>
+          ) : (
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tight text-white drop-shadow-2xl leading-[1.15] font-sans">
+              Plan Smarter. Travel Better.{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-sky-300 to-teal-200 drop-shadow-md">
+                Built for Explorers.
+              </span>
+            </h1>
+          )}
 
           <p className="text-gray-300 text-base sm:text-lg md:text-xl max-w-2xl mx-auto font-normal leading-relaxed drop-shadow">
-            Instant day-wise itineraries, real-time hotel & flight suggestions, 3D interactive route visualization, and budget estimation in seconds.
+            {t('hero_subtitle')}
           </p>
         </motion.div>
 
@@ -232,7 +243,14 @@ function HeroCarousel() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-4xl mx-auto"
         >
-          {suggestions.map((item) => (
+          {suggestions.map((item) => {
+            const localizedTitle = item.id === 'create' ? t('sug_create_title') :
+                                  item.id === 'inspire' ? t('sug_inspire_title') :
+                                  item.id === 'hidden_gems' ? t('sug_gems_title') : t('sug_adventure_title');
+            const localizedSub = item.id === 'create' ? t('sug_create_sub') :
+                                item.id === 'inspire' ? t('sug_inspire_sub') :
+                                item.id === 'hidden_gems' ? t('sug_gems_sub') : t('sug_adventure_sub');
+            return (
             <button
               key={item.id}
               onClick={() => navigateToTrip({ action: item.action })}
@@ -248,16 +266,17 @@ function HeroCarousel() {
                 </span>
               </div>
               <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-indigo-200 transition-colors line-clamp-1">
-                {item.title}
+                {localizedTitle}
               </h3>
               <p className="text-[11px] text-gray-300/80 font-medium line-clamp-1 mt-0.5">
-                {item.subtitle}
+                {localizedSub}
               </p>
               <div className="mt-2.5 flex items-center text-[11px] font-bold text-white/90 group-hover:translate-x-1 transition-transform">
                 Launch <ChevronRight className="w-3 h-3 ml-0.5 text-indigo-300" />
               </div>
             </button>
-          ))}
+            );
+          })}
         </motion.div>
 
         {/* Sathi Travel Intelligence & Trip Calendar Highlights (Prominent on Mobile & Desktop) */}
@@ -278,7 +297,7 @@ function HeroCarousel() {
               <div>
                 <div className="flex items-center gap-2">
                   <h4 className="text-sm sm:text-base font-bold text-white group-hover:text-emerald-200 transition-colors">
-                    Sathi AI Suite 🧳
+                    {t('sathi_card_title')}
                   </h4>
                   <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                     4 ML Models
@@ -303,7 +322,7 @@ function HeroCarousel() {
               <div>
                 <div className="flex items-center gap-2">
                   <h4 className="text-sm sm:text-base font-bold text-white group-hover:text-amber-200 transition-colors">
-                    Calendar & Targets 📅
+                    {t('calendar_card_title')}
                   </h4>
                   <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
                     Tracker
@@ -343,7 +362,7 @@ function HeroCarousel() {
                   }`}
                 >
                   <Bot className="w-4 h-4" />
-                  <span>AI Natural Language</span>
+                  <span>{t('hero_tab_ai')}</span>
                 </button>
                 <button
                   type="button"
@@ -355,7 +374,7 @@ function HeroCarousel() {
                   }`}
                 >
                   <Zap className="w-4 h-4" />
-                  <span>Fast Route Planner</span>
+                  <span>{t('hero_tab_quick')}</span>
                 </button>
               </div>
 
@@ -377,7 +396,7 @@ function HeroCarousel() {
                       handlePromptSubmit();
                     }
                   }}
-                  placeholder="e.g. Plan a 7-day cultural trip to Tokyo and Kyoto for 2 people with a moderate budget..."
+                  placeholder={t('hero_placeholder')}
                   className="w-full min-h-[90px] sm:min-h-[100px] resize-none border-none shadow-none focus-visible:ring-0 text-white text-base sm:text-lg bg-transparent p-2 sm:p-3 placeholder:text-gray-400 font-sans"
                 />
 

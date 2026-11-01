@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 import { currentUser, auth } from "@clerk/nextjs/server";
 import { aj } from "@/lib/arcjet";
 
-const PROMPT=`You are an AI Trip Planner Agent with 4 distinct modes. Based on what the user asks, follow the corresponding instruction:
+const PROMPT=`You are an AI Trip Planner Agent with 5 distinct modes. Based on what the user asks, follow the corresponding instruction:
 
 1. "Create New Trip" (or planning a specific trip):
    Help the user plan a trip by asking ONE relevant trip-related question at a time in this order: Starting location, Destination, Group size, Budget, Trip duration, Travel interests, Special requirements. Do not ask multiple questions at once. Wait for the user's answer before asking the next.
@@ -29,9 +29,9 @@ Every single response from you MUST strictly use the JSON schema requested in th
 
 export async function POST(req: NextRequest) {
     try {
-        const {messages} = await req.json();
+        const { messages, language } = await req.json();
         const user = await currentUser();
-        const {has} = await auth();
+        const { has } = await auth();
         const hasPremiumAccess = (has && (has({ plan: 'monthly' }) || has({ plan: 'premium' })));
 
         // Fast limit check logic:
@@ -49,8 +49,11 @@ export async function POST(req: NextRequest) {
 
             if (decision.isDenied()) {
               if (decision.reason.isRateLimit()) {
+                const limitMsg = language === 'hi'
+                  ? "क्रेडिट पॉइंट्स समाप्त! आपने स्टार्टर प्लान की सभी 3 निःशुल्क यात्राएं उपयोग कर ली हैं। कृपया अधिक क्रेडिट के लिए अपग्रेड करें।"
+                  : "Credit points finished! You have used all 3 free journeys on the Starter Plan. Please upgrade for more credits.";
                 return NextResponse.json({
-                  resp: "Credit points finished! You have used all 3 free journeys on the Starter Plan. Please upgrade for more credits.",
+                  resp: limitMsg,
                   ui: "limit"
                 });
               }
@@ -84,6 +87,11 @@ export async function POST(req: NextRequest) {
           modelName = "openai/gpt-4o-mini";
         }
 
+        let systemPrompt = PROMPT;
+        if (language === 'hi') {
+          systemPrompt += `\n\nCRITICAL LANGUAGE INSTRUCTION: The user prefers Hindi (हिंदी). You MUST generate all text, itineraries, hotel descriptions, place tips, and conversational responses in fluent, natural Hindi (Devanagari script). Keep the JSON keys in English so the frontend parser works smoothly, but ensure all textual values and descriptions are in Hindi.`;
+        }
+
         const completion = await openai.chat.completions.create({
             model: modelName,
             response_format: {
@@ -92,7 +100,7 @@ export async function POST(req: NextRequest) {
             messages: [
                 {
                     role: 'system',
-                    content: PROMPT
+                    content: systemPrompt
                 },
                 ...messages
             ],

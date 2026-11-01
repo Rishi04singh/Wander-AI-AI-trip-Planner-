@@ -11,53 +11,55 @@ import {
   Sparkles, 
   Home as HomeIcon, 
   Calendar as CalendarIcon, 
-  Compass, 
   Tag, 
   Mail, 
   FolderHeart,
   ChevronRight,
-  Bot
+  Bot,
+  Languages
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-
-const menuOptions = [
-  { 
-    name: "Home", 
-    path: "/", 
-    icon: <HomeIcon className="w-4 h-4 text-indigo-400" />,
-    badge: null 
-  },
-  { 
-    name: "Sathi 🧳", 
-    path: "/sathi", 
-    icon: <Bot className="w-4 h-4 text-emerald-400" />,
-    badge: "ML Suite" 
-  },
-  { 
-    name: "Calendar & Targets", 
-    path: "/calendar", 
-    icon: <CalendarIcon className="w-4 h-4 text-amber-400" />,
-    badge: "Tracker" 
-  },
-  { 
-    name: "Pricing", 
-    path: "/pricing", 
-    icon: <Tag className="w-4 h-4 text-blue-400" />,
-    badge: null 
-  },
-  { 
-    name: "Contact", 
-    path: "/contact", 
-    icon: <Mail className="w-4 h-4 text-purple-400" />,
-    badge: null 
-  },
-];
+import { useLanguage } from "@/context/LanguageContext";
 
 function Header() {
   const { user } = useUser();
   const router = useRouter();
   const path = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { language, setLanguage, toggleLanguage, t } = useLanguage();
+
+  const menuOptions = [
+    { 
+      name: t('nav_home'), 
+      path: "/", 
+      icon: <HomeIcon className="w-4 h-4 text-indigo-400" />,
+      badge: null 
+    },
+    { 
+      name: `${t('nav_sathi')} 🧳`, 
+      path: "/sathi", 
+      icon: <Bot className="w-4 h-4 text-emerald-400" />,
+      badge: "ML Suite" 
+    },
+    { 
+      name: t('nav_calendar'), 
+      path: "/calendar", 
+      icon: <CalendarIcon className="w-4 h-4 text-amber-400" />,
+      badge: "Tracker" 
+    },
+    { 
+      name: t('nav_pricing'), 
+      path: "/pricing", 
+      icon: <Tag className="w-4 h-4 text-blue-400" />,
+      badge: null 
+    },
+    { 
+      name: t('nav_contact'), 
+      path: "/contact", 
+      icon: <Mail className="w-4 h-4 text-purple-400" />,
+      badge: null 
+    },
+  ];
 
   // Lock body scroll when mobile drawer is open
   useEffect(() => {
@@ -117,13 +119,29 @@ function Header() {
 
         {/* Right Actions & Menu Toggle */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Quick Sathi pill on mobile navbar so it's ALWAYS 1-tap away */}
+          
+          {/* Global Language Switcher Pill (Desktop & Mobile) */}
+          <button
+            onClick={toggleLanguage}
+            title={language === 'en' ? "हिंदी में बदलें" : "Switch to English"}
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/15 border border-white/15 text-xs font-bold text-neutral-200 hover:text-white transition-all cursor-pointer shadow-xs active:scale-95"
+          >
+            <Languages className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="text-[11px] sm:text-xs">
+              {language === 'en' ? 'English' : 'हिंदी'}
+            </span>
+            <span className="text-[10px] text-indigo-300 bg-indigo-500/20 px-1 py-0.2 rounded font-mono">
+              {language === 'en' ? 'HI' : 'EN'}
+            </span>
+          </button>
+
+          {/* Quick Sathi pill on mobile navbar */}
           <Link
             href="/sathi"
             className="flex md:hidden items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold transition-all cursor-pointer"
           >
             <Bot className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span>Sathi 🧳</span>
+            <span>{language === 'hi' ? 'साथी' : 'Sathi'}</span>
           </Link>
 
           {/* Desktop Auth / Action Buttons */}
@@ -134,10 +152,10 @@ function Header() {
                   className="rounded-xl px-5 py-2 font-semibold text-sm
                   bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white
                   shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(99,102,241,0.5)]
-                  transition-all duration-300 hover:scale-[1.02] border border-indigo-400/30"
+                  transition-all duration-300 hover:scale-[1.02] border border-indigo-400/30 cursor-pointer"
                 >
                   <Sparkles className="h-4 w-4 mr-1.5" />
-                  Get Started
+                  {t('nav_sign_in')}
                 </Button>
               </SignInButton>
             ) : (
@@ -147,18 +165,18 @@ function Header() {
                     onClick={() => router.push('/my-trips')}
                     className="rounded-xl px-5 py-2 font-semibold text-sm
                       bg-white/10 hover:bg-white/20 text-white border border-white/15
-                      shadow-md transition-all duration-300 hover:scale-[1.02]"
+                      shadow-md transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                   >
-                    My Trips
+                    {t('nav_my_trips')}
                   </Button>
                 ) : (
                   <Button
                     onClick={() => router.push('/create-new-trip')}
                     className="rounded-xl px-5 py-2 font-semibold text-sm
                       bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white
-                      shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all duration-300 hover:scale-[1.02]"
+                      shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                   >
-                    Create Trip
+                    {t('nav_create_trip')}
                   </Button>
                 )}
               </div>
@@ -182,7 +200,7 @@ function Header() {
 
       </header>
 
-      {/* Modern Mobile Slide-in Side Drawer ("Side Wala Menu Bar") */}
+      {/* Modern Mobile Slide-in Side Drawer */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
@@ -202,16 +220,16 @@ function Header() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 26, stiffness: 240 }}
-              className="fixed top-0 right-0 h-full w-[82vw] max-w-[320px] bg-neutral-950/98 border-l border-white/10 backdrop-blur-2xl z-50 flex flex-col justify-between p-6 shadow-2xl md:hidden overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-[84vw] max-w-[320px] bg-neutral-950/98 border-l border-white/10 backdrop-blur-2xl z-50 flex flex-col justify-between p-5 sm:p-6 shadow-2xl md:hidden overflow-y-auto"
             >
-              <div className="space-y-6">
+              <div className="space-y-5">
                 {/* Drawer Header */}
                 <div className="flex items-center justify-between border-b border-white/10 pb-4">
                   <div className="flex items-center gap-2.5">
                     <div className="p-1.5 bg-gradient-to-br from-indigo-500/20 to-blue-500/10 rounded-xl border border-indigo-500/20">
                       <Image src="/logo.svg" alt="Logo" width={22} height={22} />
                     </div>
-                    <span className="font-extrabold text-base text-white">Menu Navigation</span>
+                    <span className="font-extrabold text-base text-white">Wanderer Menu</span>
                   </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
@@ -220,6 +238,32 @@ function Header() {
                   >
                     <X className="w-5 h-5" />
                   </button>
+                </div>
+
+                {/* Mobile Language Switcher Section */}
+                <div className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/10">
+                  <span className="text-xs font-bold text-neutral-300 flex items-center gap-1.5">
+                    <Languages className="w-4 h-4 text-indigo-400" />
+                    <span>Language / भाषा</span>
+                  </span>
+                  <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
+                    <button
+                      onClick={() => setLanguage('en')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        language === 'en' ? 'bg-indigo-600 text-white shadow-xs' : 'text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      EN
+                    </button>
+                    <button
+                      onClick={() => setLanguage('hi')}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        language === 'hi' ? 'bg-indigo-600 text-white shadow-xs' : 'text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      हिंदी
+                    </button>
+                  </div>
                 </div>
 
                 {/* Quick Action Button: Plan New Trip */}
@@ -233,7 +277,7 @@ function Header() {
                       <Sparkles className="w-4 h-4 animate-spin" style={{ animationDuration: "5s" }} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-white">Plan New Trip</h4>
+                      <h4 className="text-sm font-bold text-white">{t('nav_create_trip')}</h4>
                       <p className="text-[11px] text-indigo-200">AI Step-by-Step Copilot</p>
                     </div>
                   </div>
@@ -243,7 +287,7 @@ function Header() {
                 {/* Navigation Links */}
                 <div className="space-y-1.5">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-gray-500 px-3">
-                    Explore Platform
+                    {language === 'hi' ? 'नेविगेशन' : 'Explore Platform'}
                   </span>
                   {menuOptions.map((option, index) => {
                     const isActive = path === option.path;
@@ -285,7 +329,7 @@ function Header() {
                       className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold border border-white/15 transition-all"
                     >
                       <FolderHeart className="w-3.5 h-3.5 text-indigo-400" />
-                      <span>My Saved Trips</span>
+                      <span>{t('nav_my_trips')}</span>
                     </Link>
                     <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 border border-white/10">
                       <span className="text-xs text-gray-300 truncate max-w-[190px]">
@@ -301,13 +345,13 @@ function Header() {
                       className="w-full rounded-xl py-3 font-semibold text-sm bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white shadow-xl cursor-pointer"
                     >
                       <Sparkles className="w-4 h-4 mr-2" />
-                      Get Started / Sign In
+                      {t('nav_sign_in')}
                     </Button>
                   </SignInButton>
                 )}
 
                 <p className="text-[10px] text-gray-500 text-center">
-                  Wanderer Travel • Built for Explorers
+                  Wanderer Travel • {language === 'hi' ? 'यात्रियों के लिए निर्मित' : 'Built for Explorers'}
                 </p>
               </div>
             </motion.aside>
