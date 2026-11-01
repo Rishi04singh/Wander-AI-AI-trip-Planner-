@@ -49,3 +49,11 @@ CLAUDE.md
 skills-lock.json
 api_test_response.txt
 
+
+# clerk configuration (can include secrets)
+/.clerk/
+
+# Python cache
+__pycache__/
+*.pyc
+

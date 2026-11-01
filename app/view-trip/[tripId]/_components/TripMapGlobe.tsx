@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import dynamic from 'next/dynamic';
-import { Globe as GlobeIcon, Map as MapIcon, Navigation, Compass, Loader2 } from 'lucide-react';
+import { Globe as GlobeIcon, Map as MapIcon, Navigation, Compass, Loader2, ExternalLink } from 'lucide-react';
 
 // Dynamically import react-globe.gl to support SSR in Next.js
 const Globe = dynamic(() => import('react-globe.gl'), {
@@ -48,7 +48,6 @@ export default function TripMapGlobe({ plan }: TripMapGlobeProps) {
         if (!plan) return;
 
         const getCoords = async (item: any, query: string) => {
-            // Option 1: Direct coordinates check from AI generated schema
             const geo = item.geo_coordinates || item.coordinates || item.geometry;
             if (geo) {
                 const lat = Number(geo.latitude || geo.lat);
@@ -58,10 +57,8 @@ export default function TripMapGlobe({ plan }: TripMapGlobeProps) {
                 }
             }
 
-            // Sleep a small duration to avoid API rate limiting (429) on free keyless geocoding API
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, 150));
 
-            // Option 2: Geocode search fallback
             try {
                 const res = await axios.get(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`);
                 if (res.data?.results?.[0]) {
@@ -168,9 +165,14 @@ export default function TripMapGlobe({ plan }: TripMapGlobeProps) {
                     }
                 }
 
-                // Sort waypoints chronologically
                 foundWaypoints.sort((a, b) => a.orderIndex - b.orderIndex);
                 setWaypoints(foundWaypoints);
+
+                // If destination coords couldn't be resolved, fallback to first activity/hotel
+                if (!destPoint && foundWaypoints.length > 0) {
+                    const firstNonOrigin = foundWaypoints.find(w => w.type !== 'origin') || foundWaypoints[0];
+                    setDestCoords({ lat: firstNonOrigin.lat, lng: firstNonOrigin.lng });
+                }
             } catch (err) {
                 console.error("Geocoding workflow error:", err);
             } finally {
@@ -181,147 +183,143 @@ export default function TripMapGlobe({ plan }: TripMapGlobeProps) {
         geocodeAll();
     }, [plan]);
 
-    // 2. Leaflet initialization for Street Map view (always initialized on mount/updates)
-    useEffect(() => {
-        if (loading || !destCoords) return;
+    // 2. Leaflet initialization & lifecycle
+    const initLeaflet = () => {
+        const L = (window as any).L;
+        if (!L || !mapContainerRef.current) return;
 
-        const initLeaflet = () => {
-            const L = (window as any).L;
-            if (!L || !mapContainerRef.current) return;
+        if (mapInstanceRef.current) {
+            mapInstanceRef.current.remove();
+            mapInstanceRef.current = null;
+        }
 
-            // Destroy previous instance if any
-            if (mapInstanceRef.current) {
-                mapInstanceRef.current.remove();
-                mapInstanceRef.current = null;
-            }
+        const centerLat = destCoords?.lat ?? (waypoints.find(w => w.type !== 'origin')?.lat ?? 35.6762);
+        const centerLng = destCoords?.lng ?? (waypoints.find(w => w.type !== 'origin')?.lng ?? 139.6503);
 
-            // Create map
-            const map = L.map(mapContainerRef.current, {
-                zoomControl: true,
-                attributionControl: false
-            }).setView([destCoords.lat, destCoords.lng], 13);
-            mapInstanceRef.current = map;
+        const map = L.map(mapContainerRef.current, {
+            zoomControl: true,
+            attributionControl: false
+        }).setView([centerLat, centerLng], 13);
+        mapInstanceRef.current = map;
 
-            // Load high-quality Voyager tile sets
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                maxZoom: 20
-            }).addTo(map);
+        // Reliable OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            subdomains: 'abc'
+        }).addTo(map);
 
-            const points: [number, number][] = [];
+        const points: [number, number][] = [];
 
-            // Add markers
-            waypoints.forEach((wp) => {
-                if (wp.type === 'origin') return; // Only focus on local destinations
+        waypoints.forEach((wp) => {
+            if (wp.type === 'origin') return; // Keep focus on destination area
 
-                points.push([wp.lat, wp.lng]);
+            points.push([wp.lat, wp.lng]);
 
-                // marker color definition
-                let color = '#3b82f6'; // blue for activities
-                if (wp.type === 'hotel') color = '#ef4444'; // red for hotels
-                if (wp.type === 'destination') color = '#10b981'; // green for center
+            let color = '#3b82f6'; // blue for activities
+            if (wp.type === 'hotel') color = '#ef4444'; // red for hotels
+            if (wp.type === 'destination') color = '#10b981'; // green for center
 
-                const markerHtml = `
-                    <div style="
-                        background-color: ${color};
-                        width: 14px;
-                        height: 14px;
-                        border-radius: 50%;
-                        border: 2px solid white;
-                        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-                    "></div>
-                `;
+            const markerHtml = `
+                <div style="
+                    background-color: ${color};
+                    width: 14px;
+                    height: 14px;
+                    border-radius: 50%;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+                "></div>
+            `;
 
-                const customIcon = L.divIcon({
-                    html: markerHtml,
-                    className: 'custom-map-icon',
-                    iconSize: [14, 14],
-                    iconAnchor: [7, 7]
-                });
-
-                const marker = L.marker([wp.lat, wp.lng], { icon: customIcon }).addTo(map);
-                marker.bindPopup(`
-                    <div style="font-family: inherit; font-size: 12px; padding: 4px; max-width: 200px;">
-                        <span style="font-size: 9px; font-weight: 800; text-transform: uppercase; color: ${color};">${wp.type}</span>
-                        <h4 style="margin: 2px 0; font-weight: 700; color: #171717;">${wp.name}</h4>
-                        <p style="margin: 0; color: #6b7280; font-size: 11px;">${wp.details}</p>
-                    </div>
-                `);
+            const customIcon = L.divIcon({
+                html: markerHtml,
+                className: 'custom-map-icon',
+                iconSize: [14, 14],
+                iconAnchor: [7, 7]
             });
 
-            // Connect waypoints with polyline routing paths
-            const activityPoints = waypoints
-                .filter(wp => wp.type === 'activity' || wp.type === 'hotel')
-                .map(wp => [wp.lat, wp.lng] as [number, number]);
+            const streetViewUrl = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${wp.lat},${wp.lng}`;
+            const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(wp.name + ' ' + (wp.address || plan.destination || ''))}`;
 
-            if (activityPoints.length > 1) {
-                L.polyline(activityPoints, {
-                    color: '#3b82f6',
-                    weight: 3.5,
-                    opacity: 0.8,
-                    dashArray: '8, 8',
-                    lineJoin: 'round'
-                }).addTo(map);
-            }
+            const marker = L.marker([wp.lat, wp.lng], { icon: customIcon }).addTo(map);
+            marker.bindPopup(`
+                <div style="font-family: inherit; font-size: 12px; padding: 4px; min-width: 190px; max-width: 240px;">
+                    <span style="font-size: 9px; font-weight: 800; text-transform: uppercase; color: ${color}; letter-spacing: 0.5px;">${wp.type} ${wp.dayNumber ? `• Day ${wp.dayNumber}` : ''}</span>
+                    <h4 style="margin: 4px 0 2px 0; font-weight: 700; color: #111827; font-size: 13px; line-height: 1.3;">${wp.name}</h4>
+                    <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 11px;">${wp.details}</p>
+                    <div style="display: flex; gap: 4px; flex-direction: column;">
+                        <a href="${streetViewUrl}" target="_blank" rel="noopener noreferrer" style="display: block; padding: 5px 8px; background: #2563eb; color: #fff; border-radius: 6px; text-decoration: none; font-size: 10px; font-weight: bold; text-align: center;">
+                            Open Google Street View ↗
+                        </a>
+                        <a href="${gmapsUrl}" target="_blank" rel="noopener noreferrer" style="display: block; padding: 4px 8px; background: #f3f4f6; color: #374151; border-radius: 6px; text-decoration: none; font-size: 10px; font-weight: 600; text-align: center;">
+                            View in Google Maps ↗
+                        </a>
+                    </div>
+                </div>
+            `);
+        });
 
-            if (points.length > 0) {
-                const bounds = L.latLngBounds(points);
-                map.fitBounds(bounds, { padding: [50, 50] });
-            }
-        };
+        // Connect waypoints with routing polyline
+        const activityPoints = waypoints
+            .filter(wp => wp.type === 'activity' || wp.type === 'hotel')
+            .map(wp => [wp.lat, wp.lng] as [number, number]);
 
-        if ((window as any).L) {
-            initLeaflet();
-            return;
+        if (activityPoints.length > 1) {
+            L.polyline(activityPoints, {
+                color: '#3b82f6',
+                weight: 3.5,
+                opacity: 0.85,
+                dashArray: '8, 8',
+                lineJoin: 'round'
+            }).addTo(map);
         }
 
-        // Inject Leaflet library assets if not available
-        const linkId = 'leaflet-css';
-        if (!document.getElementById(linkId)) {
-            const link = document.createElement('link');
-            link.id = linkId;
-            link.rel = 'stylesheet';
-            link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-            document.head.appendChild(link);
+        if (points.length > 0) {
+            const bounds = L.latLngBounds(points);
+            map.fitBounds(bounds, { padding: [40, 40] });
         }
+    };
 
+    // Ensure Leaflet JS script tag exists
+    useEffect(() => {
         const scriptId = 'leaflet-js';
-        if (!document.getElementById(scriptId)) {
-            const script = document.createElement('script');
+        let script = document.getElementById(scriptId) as HTMLScriptElement;
+        if (!script) {
+            script = document.createElement('script');
             script.id = scriptId;
             script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            script.async = true;
             script.onload = () => {
-                initLeaflet();
+                if (activeTab === 'street') {
+                    initLeaflet();
+                }
             };
             document.body.appendChild(script);
-        } else {
-            if ((window as any).L) {
-                initLeaflet();
-            }
         }
-    }, [waypoints, loading, destCoords]);
+    }, [activeTab]);
 
-    // 3. Handle Map resizing and bounds fitting when switching tabs to 'street'
+    // Re-render and resize Leaflet whenever activeTab becomes 'street' or waypoints change
     useEffect(() => {
-        if (activeTab === 'street' && mapInstanceRef.current) {
+        if (activeTab === 'street' && !loading) {
             const timer = setTimeout(() => {
-                // Invalidate size to recalculate rendering container limits
-                mapInstanceRef.current.invalidateSize();
+                const L = (window as any).L;
+                if (!L) return;
 
-                // Re-fit map bounds
-                const points = waypoints
-                    .filter(wp => wp.type !== 'origin')
-                    .map(wp => [wp.lat, wp.lng] as [number, number]);
-                if (points.length > 0) {
-                    const L = (window as any).L;
-                    if (L) {
+                if (!mapInstanceRef.current) {
+                    initLeaflet();
+                } else {
+                    mapInstanceRef.current.invalidateSize();
+                    const points = waypoints
+                        .filter(wp => wp.type !== 'origin')
+                        .map(wp => [wp.lat, wp.lng] as [number, number]);
+                    if (points.length > 0) {
                         const bounds = L.latLngBounds(points);
-                        mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
+                        mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40] });
                     }
                 }
             }, 100);
             return () => clearTimeout(timer);
         }
-    }, [activeTab, waypoints]);
+    }, [activeTab, waypoints, loading, destCoords]);
 
     // Focus globe view on the destination
     useEffect(() => {
@@ -336,14 +334,38 @@ export default function TripMapGlobe({ plan }: TripMapGlobeProps) {
         }
     }, [activeTab, destCoords]);
 
-    // Prepare 3D globe visualization elements
+    // 3D globe visualization elements (dots & tooltips)
     const globeMarkers = waypoints.map(wp => ({
         lat: wp.lat,
         lng: wp.lng,
-        size: wp.type === 'destination' ? 0.8 : wp.type === 'hotel' ? 0.5 : 0.4,
-        color: wp.type === 'destination' ? '#10b981' : wp.type === 'hotel' ? '#ef4444' : '#3b82f6',
-        label: wp.name
+        size: wp.type === 'destination' ? 0.6 : wp.type === 'hotel' ? 0.45 : 0.35,
+        color: wp.type === 'destination' ? '#10b981' : wp.type === 'hotel' ? '#ef4444' : '#38bdf8',
+        label: wp.name,
+        type: wp.type,
+        details: wp.details,
+        dayNumber: wp.dayNumber
     }));
+
+    // CRITICAL FIX: Only display high-level labels for the destination and origin
+    // This prevents all 15 individual street-level activity names from rendering directly on top of each other!
+    const globeLabels = [
+        ...(destCoords ? [{
+            lat: destCoords.lat,
+            lng: destCoords.lng,
+            text: plan?.destination || 'Destination',
+            size: 1.4,
+            color: '#34d399',
+            altitude: 0.08
+        }] : []),
+        ...(originCoords ? [{
+            lat: originCoords.lat,
+            lng: originCoords.lng,
+            text: plan?.origin || 'Starting Point',
+            size: 1.1,
+            color: '#60a5fa',
+            altitude: 0.08
+        }] : [])
+    ];
 
     const arcsData = originCoords && destCoords ? [{
         startLat: originCoords.lat,
@@ -352,6 +374,8 @@ export default function TripMapGlobe({ plan }: TripMapGlobeProps) {
         endLng: destCoords.lng,
         color: ['#3b82f6', '#10b981']
     }] : [];
+
+    const googleMapsDestinationUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(plan?.destination || '')}`;
 
     return (
         <section className="space-y-6">
@@ -362,39 +386,52 @@ export default function TripMapGlobe({ plan }: TripMapGlobeProps) {
                         Interactive Travel Route
                     </h2>
                     <p className="text-neutral-500 dark:text-neutral-400 text-sm font-medium">
-                        Visualize your route on a 3D spinning globe and zoom in to street level.
+                        Visualize your route on a 3D spinning globe or switch to the Street Route Map.
                     </p>
                 </div>
 
-                {/* Tab Toggles */}
-                <div className="flex bg-neutral-200/60 dark:bg-neutral-800/40 p-1 rounded-xl border border-neutral-300/10 self-start shadow-sm print:hidden">
-                    <button
-                        onClick={() => setActiveTab('globe')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold transition-all ${
-                            activeTab === 'globe'
-                                ? 'bg-white dark:bg-neutral-900 text-blue-600 dark:text-blue-400 shadow-md shadow-neutral-900/5'
-                                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-                        }`}
+                <div className="flex flex-wrap items-center gap-2 print:hidden">
+                    {/* Tab Toggles */}
+                    <div className="flex bg-neutral-200/60 dark:bg-neutral-800/40 p-1 rounded-xl border border-neutral-300/10 shadow-sm">
+                        <button
+                            onClick={() => setActiveTab('globe')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
+                                activeTab === 'globe'
+                                    ? 'bg-white dark:bg-neutral-900 text-blue-600 dark:text-blue-400 shadow-md shadow-neutral-900/5'
+                                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                            }`}
+                        >
+                            <GlobeIcon className="h-4 w-4" />
+                            3D Globe View
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('street')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
+                                activeTab === 'street'
+                                    ? 'bg-white dark:bg-neutral-900 text-blue-600 dark:text-blue-400 shadow-md shadow-neutral-900/5'
+                                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                            }`}
+                        >
+                            <MapIcon className="h-4 w-4" />
+                            Street Route Map
+                        </button>
+                    </div>
+
+                    {/* Direct External Street View / Google Maps button */}
+                    <a
+                        href={googleMapsDestinationUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800/50 rounded-xl text-xs font-bold transition-all"
                     >
-                        <GlobeIcon className="h-4 w-4" />
-                        3D Globe View
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('street')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold transition-all ${
-                            activeTab === 'street'
-                                ? 'bg-white dark:bg-neutral-900 text-blue-600 dark:text-blue-400 shadow-md shadow-neutral-900/5'
-                                : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-                        }`}
-                    >
-                        <MapIcon className="h-4 w-4" />
-                        Street Route Map
-                    </button>
+                        <span>Google Street View</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
                 </div>
             </div>
 
             {/* Map Canvas Frame */}
-            <div className="h-[450px] w-full rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shadow-xl bg-neutral-100 dark:bg-neutral-900 relative">
+            <div className="h-[460px] w-full rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shadow-xl bg-neutral-100 dark:bg-neutral-900 relative">
                 {loading ? (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-950 gap-4">
                         <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
@@ -411,42 +448,66 @@ export default function TripMapGlobe({ plan }: TripMapGlobeProps) {
                                 backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
                                 pointsData={globeMarkers}
                                 pointColor="color"
-                                pointAltitude={0.06}
+                                pointAltitude={0.04}
                                 pointRadius="size"
-                                pointsMerge={true}
+                                pointsMerge={false}
+                                pointLabel={(d: any) => `
+                                    <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 12px; color: #fff; font-family: sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.6); pointer-events: none; max-width: 240px;">
+                                        <div style="font-size: 9px; font-weight: 800; text-transform: uppercase; color: ${d.color}; letter-spacing: 0.5px; margin-bottom: 2px;">
+                                            ${d.type} ${d.dayNumber ? `• Day ${d.dayNumber}` : ''}
+                                        </div>
+                                        <div style="font-size: 13px; font-weight: bold; color: #f8fafc; line-height: 1.2;">
+                                            ${d.label}
+                                        </div>
+                                        ${d.details ? `<div style="font-size: 10px; color: #94a3b8; margin-top: 3px;">${d.details}</div>` : ''}
+                                        <div style="font-size: 9px; color: #38bdf8; margin-top: 4px; font-weight: 600;">
+                                            Click pin to open Street View →
+                                        </div>
+                                    </div>
+                                `}
                                 arcsData={arcsData}
                                 arcColor="color"
                                 arcDashLength={0.5}
                                 arcDashGap={0.2}
                                 arcDashAnimateTime={2000}
-                                arcStroke={0.5}
-                                labelsData={globeMarkers}
+                                arcStroke={0.6}
+                                labelsData={globeLabels}
                                 labelLat="lat"
                                 labelLng="lng"
-                                labelText="label"
-                                labelSize={1.2}
-                                labelColor={() => '#ffffff'}
-                                labelDotRadius={0.3}
-                                labelAltitude={0.07}
+                                labelText="text"
+                                labelSize="size"
+                                labelColor="color"
+                                labelDotRadius={0.4}
+                                labelAltitude="altitude"
                                 onPointClick={() => {
                                     setActiveTab('street');
                                 }}
                             />
                             <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-white text-[10px] font-bold z-10 select-none">
-                                💡 Tip: Click any point or select 'Street Map' to zoom to street-level routing
+                                💡 Tip: Hover over pins for details, or click 'Street Route Map' for street-level routing
                             </div>
                         </div>
 
                         {/* 2D Street Map Container */}
                         <div className={`w-full h-full relative ${activeTab === 'street' ? 'block' : 'hidden'}`}>
-                            <div ref={mapContainerRef} className="w-full h-full z-10" />
-                            <button
-                                onClick={() => setActiveTab('globe')}
-                                className="absolute bottom-4 left-4 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-800 dark:text-white px-3 py-2 rounded-xl text-xs font-bold shadow-lg flex items-center gap-1.5 hover:scale-103 transition-transform z-20"
-                            >
-                                <Navigation className="h-3.5 w-3.5 rotate-45 text-blue-500" />
-                                Back to 3D Globe
-                            </button>
+                            <div ref={mapContainerRef} className="w-full h-full z-10" style={{ minHeight: '460px', width: '100%' }} />
+                            <div className="absolute bottom-4 left-4 flex gap-2 z-20">
+                                <button
+                                    onClick={() => setActiveTab('globe')}
+                                    className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-800 dark:text-white px-3 py-2 rounded-xl text-xs font-bold shadow-lg flex items-center gap-1.5 hover:scale-103 transition-transform cursor-pointer"
+                                >
+                                    <Navigation className="h-3.5 w-3.5 rotate-45 text-blue-500" />
+                                    Back to 3D Globe
+                                </button>
+                                <a
+                                    href={googleMapsDestinationUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-lg flex items-center gap-1.5 hover:scale-103 transition-transform cursor-pointer"
+                                >
+                                    <span>Google Street View ↗</span>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 )}

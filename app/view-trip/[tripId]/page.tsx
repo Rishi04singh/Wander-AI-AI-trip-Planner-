@@ -10,6 +10,7 @@ import HotelCardItem from './_components/HotelCardItem'
 import PlaceCardItem from './_components/PlaceCardItem'
 import TripMapGlobe from './_components/TripMapGlobe'
 import RideBookingModal from './_components/RideBookingModal'
+import MLAdaptiveTripPanel from './_components/MLAdaptiveTripPanel'
 import { motion, AnimatePresence } from 'motion/react'
 
 function ViewTrip() {
@@ -21,6 +22,28 @@ function ViewTrip() {
     const [ridePlaceName, setRidePlaceName] = useState('');
     const [rideLat, setRideLat] = useState(0);
     const [rideLng, setRideLng] = useState(0);
+    const [adaptedItineraryOverride, setAdaptedItineraryOverride] = useState<any[] | null>(null);
+
+    const handleItineraryAdapted = (adaptedData: any) => {
+        const rawPlan = trip?.tripData?.trip_plan || trip?.tripData;
+        if (adaptedData?.adaptedItinerary && Array.isArray(rawPlan?.itinerary)) {
+            const updated = rawPlan.itinerary.map((day: any, idx: number) => {
+                const match = adaptedData.adaptedItinerary.find((a: any) => a.day === day.day || a.day === idx + 1);
+                if (match) {
+                    return {
+                        ...day,
+                        day_plan: match.adaptedPlan,
+                        customerNote: match.customerNote,
+                        weatherWarning: match.weatherWarning,
+                        trafficWarning: match.trafficWarning,
+                        optimizationAction: match.optimizationAction
+                    };
+                }
+                return day;
+            });
+            setAdaptedItineraryOverride(updated);
+        }
+    };
 
     const handleBookRide = (name: string, lat: number, lng: number) => {
         setRidePlaceName(name);
@@ -289,17 +312,31 @@ function ViewTrip() {
       {/* Interactive Globe/Map View Section */}
       <TripMapGlobe plan={plan} />
 
+      {/* Kaggle ML Adaptive Trip Optimizer */}
+      <MLAdaptiveTripPanel 
+        destination={plan?.destination || ''} 
+        itinerary={plan?.itinerary || []} 
+        onItineraryAdapted={handleItineraryAdapted}
+      />
+
       {/* Itinerary Section */}
       <section className="space-y-10">
-         <div className="space-y-1.5">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-neutral-800 dark:text-neutral-100 flex items-center gap-3 tracking-tight">
-               <Compass className="h-8 w-8 text-red-500" /> Your Curated Journey
-            </h2>
-            <p className="text-sm text-neutral-500 font-medium max-w-xl">Optimized routes so you can make the most out of your travels.</p>
+         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1.5">
+               <h2 className="text-2xl md:text-3xl font-extrabold text-neutral-800 dark:text-neutral-100 flex items-center gap-3 tracking-tight">
+                  <Compass className="h-8 w-8 text-red-500" /> Your Curated Journey
+               </h2>
+               <p className="text-sm text-neutral-500 font-medium max-w-xl">Optimized routes so you can make the most out of your travels.</p>
+            </div>
+            {adaptedItineraryOverride && (
+               <span className="px-3.5 py-1.5 bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-full text-xs font-black flex items-center gap-1.5 self-start sm:self-auto animate-pulse">
+                  <Sparkles className="w-3.5 h-3.5" /> Personalized Schedule Active
+               </span>
+            )}
          </div>
 
          <div className="space-y-12">
-            {Array.isArray(plan?.itinerary) && plan.itinerary.map((day: any, dIdx: number) => (
+            {Array.isArray(adaptedItineraryOverride || plan?.itinerary) && (adaptedItineraryOverride || plan?.itinerary).map((day: any, dIdx: number) => (
                <motion.div 
                   initial={{ opacity: 0, x: -10 }}
                   whileInView={{ opacity: 1, x: 0 }}
@@ -314,8 +351,22 @@ function ViewTrip() {
                   </div>
                   
                   <div className="space-y-6">
-                     <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md px-5 py-3.5 rounded-2xl border border-neutral-100 dark:border-neutral-800 shadow-sm inline-flex flex-col gap-1.5">
-                        <h4 className="text-base md:text-lg font-extrabold text-neutral-800 dark:text-neutral-100 tracking-tight">{day.day_plan}</h4>
+                     <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md px-5 py-3.5 rounded-2xl border border-neutral-100 dark:border-neutral-800 shadow-sm inline-flex flex-col gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                           <h4 className="text-base md:text-lg font-extrabold text-neutral-800 dark:text-neutral-100 tracking-tight">{day.day_plan}</h4>
+                           {day.optimizationAction && (
+                              <span className="px-2.5 py-0.5 bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold uppercase rounded-md">
+                                 {day.optimizationAction}
+                              </span>
+                           )}
+                        </div>
+
+                        {day.customerNote && (
+                           <p className="text-xs text-cyan-400 font-semibold bg-cyan-950/30 px-3 py-1.5 rounded-xl border border-cyan-500/20">
+                              💡 {day.customerNote}
+                           </p>
+                        )}
+
                         <div className="flex items-center">
                           <span className="px-2.5 py-1 bg-red-50 dark:bg-red-950/10 text-red-500 dark:text-red-400 rounded-full text-[9px] font-bold uppercase tracking-wider border border-red-100/60 dark:border-red-900/20">
                              ✨ Best Time: {day.best_time_to_visit_day}

@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from 'openai';
 import { currentUser, auth } from "@clerk/nextjs/server";
-import { aj } from "../arcjet/route";
-
-export const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
+import { aj } from "@/lib/arcjet";
 
 const PROMPT=`You are an AI Trip Planner Agent with 4 distinct modes. Based on what the user asks, follow the corresponding instruction:
 
@@ -30,7 +25,7 @@ Every single response from you MUST strictly use the JSON schema requested in th
 {
   "resp": "Your conversational text response (IF mode 1) OR an Array of Objects if listing places in modes 2/3/4 based on this structure: [{ \"name\": \"Place\", \"description\": \"...\" }]",
   "ui": "budget/groupSize/tripDuration/final" // (Choose ONE based on what component should render next, or "final" if showing places)
-}`
+}`;
 
 export async function POST(req: NextRequest) {
     try {
@@ -40,42 +35,63 @@ export async function POST(req: NextRequest) {
         const hasPremiumAccess = has({ plan: 'monthly' });
 
         // Fast limit check logic:
-        // Any new interaction (messages.length <= 1) costs 5 tokens.
-        // This charges the user 'at the door' for a trip or a discovery feature.
-        // Subsequent messages in that same conversation are free (0 tokens) to ensure they can finish.
         const isNewInteraction = messages.length <= 1;
         const requestedTokens = isNewInteraction ? 5 : 0;
 
         if (!hasPremiumAccess) {
-          const decision = await aj.protect(req, { 
-            userId: user?.primaryEmailAddress?.emailAddress ?? "anonymous", 
-            requested: requestedTokens 
-          });
-          
-          console.log("Arcjet Decision:", decision);
+          try {
+            const decision = await aj.protect(req, { 
+              userId: user?.primaryEmailAddress?.emailAddress ?? "anonymous", 
+              requested: requestedTokens 
+            });
+            
+            console.log("Arcjet Decision:", decision);
 
-          if (decision.isDenied()) {
-            if (decision.reason.isRateLimit()) {
-              return NextResponse.json({
-                resp: "You have exceeded your daily limit. Please try again tomorrow.",
-                ui: "limit"
-              });
+            if (decision.isDenied()) {
+              if (decision.reason.isRateLimit()) {
+                return NextResponse.json({
+                  resp: "You have exceeded your daily limit. Please try again tomorrow.",
+                  ui: "limit"
+                });
+              }
+              return NextResponse.json(
+                { error: "Access Denied", reason: decision.reason },
+                { status: 403 },
+              );
             }
-            return NextResponse.json(
-              { error: "Access Denied", reason: decision.reason },
-              { status: 403 },
-            );
+          } catch (arcjetErr) {
+            console.warn("Arcjet check warning (continuing request):", arcjetErr);
           }
         }
 
+        const geminiApiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+        const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+
+        let openai: OpenAI;
+        let modelName: string;
+
+        if (geminiApiKey) {
+          openai = new OpenAI({
+            baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+            apiKey: geminiApiKey,
+          });
+          modelName = "gemini-3.6-flash";
+        } else {
+          openai = new OpenAI({
+            baseURL: "https://openrouter.ai/api/v1",
+            apiKey: openRouterApiKey || "",
+          });
+          modelName = "openai/gpt-4o-mini";
+        }
+
         const completion = await openai.chat.completions.create({
-            model: "openai/gpt-4o-mini",
-            response_format:{
-                type:'json_object'
+            model: modelName,
+            response_format: {
+                type: 'json_object'
             },
             messages: [
                 {
-                    role:'system',
+                    role: 'system',
                     content: PROMPT
                 },
                 ...messages
@@ -83,7 +99,7 @@ export async function POST(req: NextRequest) {
         });
       
         console.log(completion.choices[0].message);
-        const message=completion.choices[0].message;
+        const message = completion.choices[0].message;
         let parsedContent;
         try {
             parsedContent = JSON.parse(message.content ?? '{}');
@@ -98,4 +114,4 @@ export async function POST(req: NextRequest) {
         console.error("POST /api/aimodel Error: ", e);
         return NextResponse.json({error: e.message || String(e), stack: e.stack}, { status: 500 });
     }
-}
+}

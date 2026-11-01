@@ -1,0 +1,29 @@
+{
+  "model_name": "HistGradientBoosting Regressor & Classifier Ensemble",
+  "dataset_size": 3900,
+  "metrics": {
+    "mae": 4.3275,
+    "r2": 0.7332,
+    "accuracy": 0.7821
+  },
+  "candidates_compared": [
+    {
+      "model": "Random Forest Ensemble",
+      "mae": 4.47,
+      "r2": 0.6806,
+      "acc": 0.7679
+    },
+    {
+      "model": "HistGradientBoosting (GBDT)",
+      "mae": 4.328,
+      "r2": 0.7332,
+      "acc": 0.7821
+    },
+    {
+      "model": "Ridge + Logistic Regression",
+      "mae": 8.895,
+      "r2": 0.2069,
+      "acc": 0.3333
+    }
+  ]
+}
