@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
         const {messages} = await req.json();
         const user = await currentUser();
         const {has} = await auth();
-        const hasPremiumAccess = has({ plan: 'monthly' });
+        const hasPremiumAccess = (has && (has({ plan: 'monthly' }) || has({ plan: 'premium' })));
 
         // Fast limit check logic:
         const isNewInteraction = messages.length <= 1;
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
             if (decision.isDenied()) {
               if (decision.reason.isRateLimit()) {
                 return NextResponse.json({
-                  resp: "You have exceeded your daily limit. Please try again tomorrow.",
+                  resp: "Credit points finished! You have used all 3 free journeys on the Starter Plan. Please upgrade for more credits.",
                   ui: "limit"
                 });
               }
@@ -114,4 +114,4 @@ export async function POST(req: NextRequest) {
         console.error("POST /api/aimodel Error: ", e);
         return NextResponse.json({error: e.message || String(e), stack: e.stack}, { status: 500 });
     }
-}
+}

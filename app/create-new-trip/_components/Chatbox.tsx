@@ -25,13 +25,16 @@ import {
   Sliders,
   DollarSign,
   Gem,
-  Mountain
+  Mountain,
+  Zap
 } from 'lucide-react';
 import axios from 'axios';
-import { useMutation } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useUserDetail } from '../../provider';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useUser, useAuth } from '@clerk/nextjs';
+import Link from 'next/link';
 
 type Message = {
   role: string;
@@ -388,12 +391,41 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
   const [generatedTripId, setGeneratedTripId] = useState<string | null>(null);
   const [activeModeTab, setActiveModeTab] = useState<string>("plan");
 
+  const { user } = useUser();
+  const { has } = useAuth();
   const { userDetail } = useUserDetail();
   const saveTrip = useMutation((api as any).trips.saveTrip);
   const router = useRouter();
   const searchParams = useSearchParams();
   const scrollRef = useRef<HTMLDivElement>(null);
   const initialParamsHandled = useRef(false);
+
+  // User trips & Free plan 3-credit tracking
+  const activeEmail = userDetail?.email || user?.primaryEmailAddress?.emailAddress;
+  const userTrips = useQuery((api as any).trips.getUserTrips, activeEmail ? { userEmail: activeEmail } : "skip");
+
+  const isSubscribed = Boolean(
+    (has && (has({ plan: 'monthly' }) || has({ plan: 'premium' }))) || 
+    userDetail?.subscribed
+  );
+  const tripCount = Array.isArray(userTrips) ? userTrips.length : 0;
+  const FREE_LIMIT = 3;
+  const remainingCredits = Math.max(0, FREE_LIMIT - tripCount);
+  const isLimitReached = !isSubscribed && tripCount >= FREE_LIMIT;
+
+  // Proactively inform user when limit is reached on initial load
+  useEffect(() => {
+    if (isLimitReached && !isSubscribed && messages.length <= 1 && step <= 1) {
+      setStep(0);
+      setMessages([
+        {
+          role: 'assistant',
+          content: `Credit points finished! You have used all ${FREE_LIMIT} free journeys included with the Free Starter Plan. Please upgrade to our Monthly Pro or Premium plan to unlock unlimited journeys and full AI access.`,
+          ui: 'limit'
+        }
+      ]);
+    }
+  }, [isLimitReached, isSubscribed]);
 
   // Auto scroll to latest message
   useEffect(() => {
@@ -476,6 +508,18 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
     });
     setGeneratedTripId(null);
 
+    if (isLimitReached) {
+      setStep(0);
+      setMessages([
+        {
+          role: 'assistant',
+          content: `Credit points finished! You have used all ${FREE_LIMIT} free journeys included with the Free Starter Plan. Please upgrade to our Monthly Pro or Premium plan to unlock unlimited journeys and full AI access.`,
+          ui: 'limit'
+        }
+      ]);
+      return;
+    }
+
     if (initialFrom && initialTo) {
       setStep(3);
       setMessages([
@@ -546,6 +590,23 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
   // Direct 1-Click Plan Trip from Place Cards
   const handleSelectPlaceToPlan = (place: any) => {
     setSelectedPlace(null);
+    if (isLimitReached) {
+      setActiveModeTab("plan");
+      setStep(0);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'user',
+          content: `Plan a trip to ${place.name}`
+        },
+        {
+          role: 'assistant',
+          content: `Credit points finished! You have used all ${FREE_LIMIT} free journeys on the Starter Plan. Please upgrade to continue generating custom itineraries.`,
+          ui: 'limit'
+        }
+      ]);
+      return;
+    }
     const placeName = place.name.split(',')[0].trim();
     setTripData((prev: any) => ({ ...prev, to: place.name }));
     setStep(1);
@@ -565,6 +626,17 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
   };
 
   const triggerTripGeneration = async (currentTripData: any) => {
+    if (isLimitReached) {
+      setMessages((prev: Message[]) => [...prev, {
+        role: 'assistant',
+        content: `Credit points finished! You have used all ${FREE_LIMIT} free journeys on the Starter Plan. Upgrade for unlimited AI travel planning.`,
+        ui: 'limit'
+      }]);
+      setStep(0);
+      setIsLoading(false);
+      return;
+    }
+
     setStep(6);
     const finalTripPrompt = `Mode: 5, Trip Plan Details: Origin: ${currentTripData.from}, Destination: ${currentTripData.to}, Duration: ${currentTripData.days} Days, Traveler: ${currentTripData.travelers}, Budget: ${currentTripData.budget}. ${FINAL_PROMPT}`;
     
@@ -620,6 +692,20 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
     if (!textToSend.trim() || isLoading) return;
     setIsLoading(true);
     if (!overrideText) setInput("");
+
+    if (isLimitReached && (textToSend === "Create New Trip" || step >= 1)) {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'user', content: textToSend },
+        {
+          role: 'assistant',
+          content: `Credit points finished! You have used all ${FREE_LIMIT} free journeys on the Starter Plan. Please upgrade to our Monthly Pro or Premium plan to generate more trips.`,
+          ui: 'limit'
+        }
+      ]);
+      setIsLoading(false);
+      return;
+    }
 
     const newMsg: Message = {
       role: 'user',
@@ -856,13 +942,36 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
           </button>
         </div>
 
-        <button
-          onClick={() => startStepWizard()}
-          title="Restart planner"
-          className="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white transition-colors cursor-pointer"
-        >
-          <RotateCcw className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          {isSubscribed ? (
+            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <Zap className="w-3 h-3 fill-emerald-400" />
+              Pro Unlimited
+            </span>
+          ) : (
+            <Link
+              href="/pricing"
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${
+                isLimitReached
+                  ? 'bg-rose-500/15 text-rose-300 border-rose-500/30 hover:bg-rose-500/25'
+                  : 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/25'
+              }`}
+              title="Click to view pricing & upgrade plans"
+            >
+              <Zap className={`w-3 h-3 ${isLimitReached ? 'text-rose-400 fill-rose-400' : 'text-indigo-400 fill-indigo-400'}`} />
+              <span>{remainingCredits}/{FREE_LIMIT} Free Credits</span>
+              {isLimitReached && <span className="font-bold underline text-[10px] ml-0.5">Upgrade</span>}
+            </Link>
+          )}
+
+          <button
+            onClick={() => startStepWizard()}
+            title="Restart planner"
+            className="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white transition-colors cursor-pointer"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Messages Scroll Area */}
@@ -1072,18 +1181,29 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
 
                   {/* UI WIDGET 7: Limit Card */}
                   {msg.ui === 'limit' && (
-                    <div className="flex flex-col items-center justify-center p-6 mt-4 bg-rose-950/30 rounded-2xl border border-rose-500/30 space-y-3 text-center">
-                      <Info className="h-7 w-7 text-rose-400" />
-                      <h3 className="text-base font-bold text-white">Credit Limit Reached</h3>
-                      <p className="text-xs text-gray-300">
-                        You have reached your daily quota. Check out our unlimited subscription or return tomorrow!
-                      </p>
-                      <Button 
-                        onClick={() => router.push('/pricing')}
-                        className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold px-5"
-                      >
-                        Upgrade to Unlimited
-                      </Button>
+                    <div className="flex flex-col items-center justify-center p-6 mt-4 bg-gradient-to-b from-rose-950/40 to-neutral-900 rounded-3xl border border-rose-500/40 space-y-3.5 text-center shadow-2xl">
+                      <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400">
+                        <Zap className="h-6 w-6 fill-rose-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black text-white">
+                          Credit Points Finished ({FREE_LIMIT}/{FREE_LIMIT} Used)
+                        </h3>
+                        <p className="text-xs text-neutral-300 max-w-sm mt-1 leading-relaxed">
+                          You have used all {FREE_LIMIT} free journeys included with the Free Starter Plan. Upgrade to our Monthly Pro or Premium plan to unlock unlimited journeys, personalized Sathi re-scheduling, and offline PDF exports!
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full pt-1">
+                        <Link 
+                          href="/pricing"
+                          className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-rose-500 to-indigo-600 hover:from-rose-600 hover:to-indigo-700 text-white font-bold text-xs shadow-lg shadow-rose-500/20 transition-all text-center flex items-center justify-center gap-1.5 active:scale-95"
+                        >
+                          <Zap className="w-3.5 h-3.5 fill-white" />
+                          <span>Upgrade for More Credits</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
                     </div>
                   )}
                 </div>

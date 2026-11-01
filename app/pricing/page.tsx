@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Check, Globe, Zap, Sparkles, ArrowRight, HelpCircle, ChevronDown } from 'lucide-react'
+import { Check, Globe, Zap, Sparkles, ArrowRight, HelpCircle, ChevronDown, Compass } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { useClerk, useUser } from '@clerk/nextjs'
@@ -16,17 +16,38 @@ function Pricing() {
 
   const plans = [
     {
-      name: 'Monthly',
+      name: 'Free Starter',
+      icon: <Compass className="h-6 w-6 text-emerald-400" />,
+      description: 'Ideal for trying out the AI planner with essential features.',
+      price: { monthly: 0, yearly: 0 },
+      features: [
+        '3 Free AI Trip Generations',
+        'Standard Day-by-Day Schedules',
+        '3D Interactive Globe Visualization',
+        'Leaflet Street Maps & Routes',
+        'Basic Weather & Traffic Advisories'
+      ],
+      cta: 'Start Planning Free',
+      actionType: 'free',
+      popular: false,
+      badge: 'Free Forever',
+      colorClass: 'from-emerald-500 to-teal-500 text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+      glowColor: 'group-hover:shadow-emerald-500/10'
+    },
+    {
+      name: 'Monthly Pro',
       icon: <Zap className="h-6 w-6 text-indigo-400 animate-pulse" />,
-      description: 'For active travelers seeking deep, customized global plans.',
+      description: 'For active travelers seeking unlimited journeys and deep AI.',
       price: { monthly: 9.99, yearly: 8 },
       features: [
-        'Unlimited Trip Planner',
-        '90 Days Trip History',
-        '24/7 Email Support',
-        '3D Places on Map'
+        'Unlimited Trip Planner & Generations',
+        'Sathi Real-Time ML Suite (4 Models)',
+        'Dynamic Weather & Transit Adaptation',
+        'Interactive Monthly Trip Calendar',
+        'Priority Route Optimization',
+        '24/7 Priority Support'
       ],
-      cta: 'Upgrade to Monthly',
+      cta: 'Upgrade to Unlimited',
       actionType: 'pay',
       popular: true,
       badge: 'Most Popular',
@@ -34,16 +55,16 @@ function Pricing() {
       glowColor: 'group-hover:shadow-indigo-500/10'
     },
     {
-      name: 'Premium',
+      name: 'Premium Agency',
       icon: <Globe className="h-6 w-6 text-blue-400" />,
       description: 'Ideal for travel bloggers, agencies, and group organizers.',
       price: { monthly: 29, yearly: 25 },
       features: [
-        'Everything in Monthly Plan',
+        'Everything in Monthly Pro',
         'Custom branding & white-label PDFs',
         'Group collaboration & shared plans',
         'API access for developers',
-        'Dedicated 24/7 priority support',
+        'Dedicated 24/7 priority concierge',
         'Early access to next-gen AI models'
       ],
       cta: 'Choose Premium',
@@ -58,7 +79,7 @@ function Pricing() {
   const faqs = [
     {
       q: "How do trip generation credits work?",
-      a: "On the Starter plan, you get 3 credits every month. Upgrading to the Pro plan gives you unlimited generations, meaning you can draft as many itineraries as you like without running out."
+      a: "On the Free Starter plan, you get 3 free trip generation credits. After you generate 3 journeys, your free credits finish and you can easily upgrade to our Monthly Pro or Premium plan to unlock unlimited trip itineraries!"
     },
     {
       q: "Can I cancel my plan anytime?",
@@ -71,6 +92,11 @@ function Pricing() {
   ];
 
   const handlePlanSelection = (plan: any) => {
+    if (plan.actionType === 'free') {
+      router.push('/create-new-trip');
+      return;
+    }
+
     if (!isLoaded) return;
 
     if (!user) {
@@ -130,7 +156,7 @@ function Pricing() {
             transition={{ duration: 0.7, delay: 0.15 }}
             className="text-neutral-400 text-base md:text-xl leading-relaxed max-w-2xl mx-auto"
           >
-            Unlock the power of AI-driven travel planning. From quick weekend getaways to global expeditions, find the perfect fit.
+            Unlock the power of AI-driven travel planning. From 3 free journeys on the Starter plan to unlimited expeditions on Pro, find the perfect fit.
           </motion.p>
         </div>
 
@@ -146,7 +172,7 @@ function Pricing() {
           </span>
           <button 
             onClick={() => setBillingPeriod(prev => prev === 'monthly' ? 'yearly' : 'monthly')}
-            className="w-14 h-8 bg-white/10 border border-white/10 rounded-full p-1 transition-colors duration-300 relative focus:outline-hidden"
+            className="w-14 h-8 bg-white/10 border border-white/10 rounded-full p-1 transition-colors duration-300 relative focus:outline-hidden cursor-pointer"
           >
             <motion.div 
               layout
@@ -165,18 +191,18 @@ function Pricing() {
           </div>
         </motion.div>
 
-        {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch mb-24 max-w-4xl mx-auto">
+        {/* Pricing Cards Grid (3 Columns) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch mb-24 max-w-6xl mx-auto">
           {plans.map((plan, idx) => (
             <motion.div
               key={plan.name}
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: idx * 0.12, type: "spring", stiffness: 90 }}
-              whileHover={{ y: -10, transition: { duration: 0.2 } }}
-              className={`flex flex-col h-full bg-white/5 backdrop-blur-xl rounded-[40px] border relative transition-all duration-300 overflow-hidden group shadow-lg hover:shadow-2xl ${plan.glowColor} ${
+              whileHover={{ y: -8, transition: { duration: 0.2 } }}
+              className={`flex flex-col h-full bg-white/5 backdrop-blur-xl rounded-[36px] border relative transition-all duration-300 overflow-hidden group shadow-lg hover:shadow-2xl ${plan.glowColor} ${
                 plan.popular 
-                  ? 'border-indigo-500/40 ring-4 ring-indigo-500/10' 
+                  ? 'border-indigo-500/50 ring-4 ring-indigo-500/10' 
                   : 'border-white/10'
               }`}
             >
@@ -186,7 +212,7 @@ function Pricing() {
               )}
 
               {/* Card Body */}
-              <div className="p-8 flex-1 flex flex-col justify-between">
+              <div className="p-7 flex-1 flex flex-col justify-between">
                 <div>
                   {/* Badge & Icon Header */}
                   <div className="flex items-center justify-between mb-6">
@@ -207,11 +233,13 @@ function Pricing() {
                     <span className="text-5xl font-black text-white transition-all duration-300">
                       ${billingPeriod === 'monthly' ? plan.price.monthly : plan.price.yearly}
                     </span>
-                    <span className="text-sm font-semibold text-neutral-400">/ month</span>
+                    <span className="text-sm font-semibold text-neutral-400">
+                      {plan.price.monthly === 0 ? "forever" : "/ month"}
+                    </span>
                   </div>
 
                   {/* Features List */}
-                  <div className="space-y-4 mb-8">
+                  <div className="space-y-3.5 mb-8">
                     {plan.features.map((feature, fIdx) => (
                       <motion.div 
                         key={fIdx} 
@@ -234,7 +262,7 @@ function Pricing() {
                 {/* Action CTA Button */}
                 <Button
                   onClick={() => handlePlanSelection(plan)}
-                  className={`w-full h-13 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 group ${
+                  className={`w-full h-12 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 group cursor-pointer ${
                     plan.popular
                       ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 hover:from-indigo-700 hover:via-purple-700 hover:to-blue-700 text-white shadow-xl shadow-indigo-500/20 hover:scale-[1.02]'
                       : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:scale-[1.01]'
@@ -267,7 +295,7 @@ function Pricing() {
                 >
                   <button
                     onClick={() => setOpenFaq(isOpen ? null : index)}
-                    className="w-full px-6 py-5 flex items-center justify-between text-left font-bold text-white hover:text-indigo-400 transition-colors"
+                    className="w-full px-6 py-5 flex items-center justify-between text-left font-bold text-white hover:text-indigo-400 transition-colors cursor-pointer"
                   >
                     <span>{faq.q}</span>
                     <ChevronDown className={`h-5 w-5 text-neutral-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-indigo-400' : ''}`} />
