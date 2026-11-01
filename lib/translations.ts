@@ -216,3 +216,4 @@ export const translations = {
     switch_lang: "English",
   }
 };
+

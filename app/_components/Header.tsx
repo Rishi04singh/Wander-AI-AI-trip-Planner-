@@ -80,16 +80,17 @@ function Header() {
 
   return (
     <>
-      <header className="fixed top-0 w-full flex items-center justify-between px-3.5 sm:px-6 md:px-12 py-3 bg-black/60 backdrop-blur-2xl border-b border-white/10 z-40 transition-all duration-300 print:hidden">
+      <header className="fixed top-0 left-0 right-0 w-full h-16 flex items-center justify-between px-3 sm:px-6 md:px-12 bg-black/75 backdrop-blur-2xl border-b border-white/10 z-40 transition-all duration-300 print:hidden">
 
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 sm:gap-3 group shrink-0">
-          <div className="p-1.5 sm:p-2 bg-gradient-to-br from-indigo-500/20 to-blue-500/10 rounded-2xl group-hover:from-indigo-500/30 group-hover:to-blue-500/20 transition-all border border-indigo-500/20">
+        {/* Logo (Shrink safe on mobile) */}
+        <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0 min-w-0">
+          <div className="p-1.5 sm:p-2 bg-gradient-to-br from-indigo-500/20 to-blue-500/10 rounded-2xl group-hover:from-indigo-500/30 group-hover:to-blue-500/20 transition-all border border-indigo-500/20 shrink-0">
             <Image src="/logo.svg" alt="Logo" width={22} height={22} className="drop-shadow-lg group-hover:scale-110 transition-transform" />
           </div>
 
-          <h2 className="font-bold text-base sm:text-xl md:text-2xl tracking-tight text-white drop-shadow-md flex items-center gap-1">
-            Wanderer <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-blue-400">Travel</span>
+          <h2 className="font-extrabold text-base sm:text-xl md:text-2xl tracking-tight text-white drop-shadow-md flex items-center gap-1">
+            <span>Wanderer</span>
+            <span className="hidden xs:inline text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-blue-400">Travel</span>
           </h2>
         </Link>
 
@@ -117,17 +118,17 @@ function Header() {
           })}
         </nav>
 
-        {/* Right Actions & Menu Toggle */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Right Actions & Menu Toggle (Always Unbreakable) */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto sm:ml-0">
           
-          {/* Global Language Switcher Pill (Desktop & Mobile) */}
+          {/* Desktop Language Switcher */}
           <button
             onClick={toggleLanguage}
             title={language === 'en' ? "हिंदी में बदलें" : "Switch to English"}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/15 border border-white/15 text-xs font-bold text-neutral-200 hover:text-white transition-all cursor-pointer shadow-xs active:scale-95"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/15 border border-white/15 text-xs font-bold text-neutral-200 hover:text-white transition-all cursor-pointer shadow-xs active:scale-95"
           >
             <Languages className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="text-[11px] sm:text-xs">
+            <span className="text-xs">
               {language === 'en' ? 'English' : 'हिंदी'}
             </span>
             <span className="text-[10px] text-indigo-300 bg-indigo-500/20 px-1 py-0.2 rounded font-mono">
@@ -135,14 +136,17 @@ function Header() {
             </span>
           </button>
 
-          {/* Quick Sathi pill on mobile navbar */}
-          <Link
-            href="/sathi"
-            className="flex md:hidden items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold transition-all cursor-pointer"
+          {/* Compact Mobile Language Icon Pill */}
+          <button
+            onClick={toggleLanguage}
+            title={language === 'en' ? "हिंदी में बदलें" : "Switch to English"}
+            className="flex sm:hidden items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold text-neutral-200 active:scale-95 transition-all shrink-0 cursor-pointer"
           >
-            <Bot className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span>{language === 'hi' ? 'साथी' : 'Sathi'}</span>
-          </Link>
+            <Languages className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="text-[11px] font-mono font-bold text-indigo-300">
+              {language === 'en' ? 'HI' : 'EN'}
+            </span>
+          </button>
 
           {/* Desktop Auth / Action Buttons */}
           <div className="hidden sm:flex items-center gap-3">
@@ -183,24 +187,26 @@ function Header() {
             )}
           </div>
 
-          {/* User Button */}
+          {/* User Button (Compact & shrink-proof) */}
           {user && (
-            <UserButton appearance={{ elements: { avatarBox: "h-8 w-8 sm:h-9 sm:w-9 border border-white/20 hover:scale-105 transition-transform" } }} />
+            <div className="shrink-0 flex items-center">
+              <UserButton appearance={{ elements: { avatarBox: "h-8 w-8 border border-white/20 hover:scale-105 transition-transform" } }} />
+            </div>
           )}
 
-          {/* Mobile Hamburger Toggle Button */}
+          {/* Mobile Hamburger Toggle Button (ALWAYS Visible, High-Contrast & Protected from Shifting) */}
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="md:hidden p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 active:scale-95 border border-white/15 transition-all flex items-center justify-center cursor-pointer shadow-sm"
-            aria-label="Open side menu"
+            className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-600/30 to-blue-600/30 hover:from-indigo-600/40 hover:to-blue-600/40 border border-indigo-500/40 text-white active:scale-95 transition-all cursor-pointer shadow-md shrink-0 ml-1"
+            aria-label="Open mobile menu"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-5 w-5 text-indigo-200" />
           </button>
         </div>
 
       </header>
 
-      {/* Modern Mobile Slide-in Side Drawer */}
+      {/* Modern Mobile Slide-in Side Drawer (High z-index to guarantee zero clipping or hiding) */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
@@ -211,7 +217,7 @@ function Header() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={() => setMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 md:hidden"
+              className="fixed inset-0 bg-black/85 backdrop-blur-md z-[9998] md:hidden"
             />
 
             {/* Slide-in Panel from Right */}
@@ -219,17 +225,20 @@ function Header() {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 26, stiffness: 240 }}
-              className="fixed top-0 right-0 h-full w-[84vw] max-w-[320px] bg-neutral-950/98 border-l border-white/10 backdrop-blur-2xl z-50 flex flex-col justify-between p-5 sm:p-6 shadow-2xl md:hidden overflow-y-auto"
+              transition={{ type: "spring", damping: 28, stiffness: 260 }}
+              className="fixed top-0 right-0 h-dvh w-[86vw] max-w-[330px] bg-neutral-950 border-l border-white/15 backdrop-blur-3xl z-[9999] flex flex-col justify-between p-5 shadow-2xl md:hidden overflow-y-auto"
             >
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {/* Drawer Header */}
-                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="flex items-center justify-between border-b border-white/10 pb-3.5">
                   <div className="flex items-center gap-2.5">
                     <div className="p-1.5 bg-gradient-to-br from-indigo-500/20 to-blue-500/10 rounded-xl border border-indigo-500/20">
                       <Image src="/logo.svg" alt="Logo" width={22} height={22} />
                     </div>
-                    <span className="font-extrabold text-base text-white">Wanderer Menu</span>
+                    <div>
+                      <span className="font-extrabold text-base text-white block leading-tight">Wanderer</span>
+                      <span className="text-[10px] text-gray-400 font-medium">Travel Explorer</span>
+                    </div>
                   </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
@@ -240,24 +249,24 @@ function Header() {
                   </button>
                 </div>
 
-                {/* Mobile Language Switcher Section */}
+                {/* Mobile Language Switcher Selector */}
                 <div className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/10">
                   <span className="text-xs font-bold text-neutral-300 flex items-center gap-1.5">
                     <Languages className="w-4 h-4 text-indigo-400" />
                     <span>Language / भाषा</span>
                   </span>
-                  <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
+                  <div className="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/10">
                     <button
                       onClick={() => setLanguage('en')}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         language === 'en' ? 'bg-indigo-600 text-white shadow-xs' : 'text-neutral-400 hover:text-white'
                       }`}
                     >
-                      EN
+                      English
                     </button>
                     <button
                       onClick={() => setLanguage('hi')}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         language === 'hi' ? 'bg-indigo-600 text-white shadow-xs' : 'text-neutral-400 hover:text-white'
                       }`}
                     >
@@ -284,8 +293,31 @@ function Header() {
                   <ChevronRight className="w-4 h-4 text-indigo-300" />
                 </Link>
 
+                {/* Sathi ML Suite Highlight Card Inside Drawer */}
+                <Link
+                  href="/sathi"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between p-3 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-white hover:bg-emerald-950/60 active:scale-98 transition-all"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400">
+                      <Bot className="w-4 h-4 animate-pulse" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="text-xs font-bold text-white">{t('nav_sathi')} 🧳</h4>
+                        <span className="text-[8px] font-black uppercase px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                          ML Suite
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-gray-300">Weather, delays & re-routing</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-emerald-400" />
+                </Link>
+
                 {/* Navigation Links */}
-                <div className="space-y-1.5">
+                <div className="space-y-1 pt-1">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-gray-500 px-3">
                     {language === 'hi' ? 'नेविगेशन' : 'Explore Platform'}
                   </span>
@@ -296,7 +328,7 @@ function Header() {
                         key={index}
                         href={option.path}
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center justify-between px-3.5 py-3 rounded-2xl text-sm font-semibold transition-all ${
+                        className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all ${
                           isActive
                             ? "bg-indigo-600/30 text-white border border-indigo-500/40 shadow-inner"
                             : "text-gray-300 hover:bg-white/5 hover:text-white"
@@ -320,7 +352,7 @@ function Header() {
               </div>
 
               {/* Drawer Footer Actions */}
-              <div className="border-t border-white/10 pt-4 mt-6 space-y-3">
+              <div className="border-t border-white/10 pt-4 mt-4 space-y-3">
                 {user ? (
                   <div className="space-y-2">
                     <Link
