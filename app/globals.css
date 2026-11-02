@@ -188,4 +188,28 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
+}
+
+
+/* Print to PDF Styles */
+@media print {
+  header,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}

@@ -26,7 +26,10 @@ import {
   DollarSign,
   Gem,
   Mountain,
-  Zap
+  Zap,
+  Share2,
+  Printer,
+  Check
 } from 'lucide-react';
 import axios from 'axios';
 import { useMutation, useQuery } from 'convex/react';
@@ -390,6 +393,38 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
   
   const [step, setStep] = useState(0); // 0: Idle, 1: Origin, 2: Destination, 3: Travelers, 4: Budget, 5: Days, 6: Generating
   const [tempDays, setTempDays] = useState(5);
+  const [copiedShare, setCopiedShare] = useState(false);
+
+  const handleShareGeneratedTrip = async () => {
+    if (!generatedTripId) return;
+    const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/view-trip/${generatedTripId}` : '';
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: 'My AI Trip Plan - Wanderer Travel',
+          text: 'Check out the AI trip itinerary I just created!',
+          url: shareUrl
+        });
+        return;
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedShare(true);
+      setTimeout(() => setCopiedShare(false), 3000);
+    } catch (e) {
+      const el = document.createElement('input');
+      el.value = shareUrl;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setCopiedShare(true);
+      setTimeout(() => setCopiedShare(false), 3000);
+    }
+  };
   const [generatedTripId, setGeneratedTripId] = useState<string | null>(null);
   const [activeModeTab, setActiveModeTab] = useState<string>("plan");
 
@@ -1199,6 +1234,38 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
                           </span>
                         )}
                       </Button>
+
+                      {generatedTripId && !isLoading && (
+                        <div className="flex items-center gap-2.5 w-full pt-1">
+                          <Button
+                            type="button"
+                            onClick={() => window.open(`/view-trip/${generatedTripId}?print=true`, '_blank')}
+                            variant="outline"
+                            className="flex-1 rounded-2xl h-11 border-white/20 bg-white/5 hover:bg-white/10 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                          >
+                            <Printer className="w-4 h-4 text-blue-400" />
+                            <span>Download PDF</span>
+                          </Button>
+                          <Button
+                            type="button"
+                            onClick={handleShareGeneratedTrip}
+                            variant="outline"
+                            className="flex-1 rounded-2xl h-11 border-white/20 bg-white/5 hover:bg-white/10 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                          >
+                            {copiedShare ? (
+                              <>
+                                <Check className="w-4 h-4 text-emerald-400" />
+                                <span className="text-emerald-300">Link Copied!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Share2 className="w-4 h-4 text-indigo-400" />
+                                <span>Share Trip</span>
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
 

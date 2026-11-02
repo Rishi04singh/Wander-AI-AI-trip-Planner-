@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Globe, MapPin, Calendar, Wallet, Users, Hotel, Compass, Sparkles } from 'lucide-react'
+import { Globe, MapPin, Calendar, Wallet, Users, Hotel, Compass, Sparkles, Share2, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import axios from 'axios'
 import HotelCardItem from './_components/HotelCardItem'
@@ -153,27 +153,50 @@ function ViewTrip() {
     };
 
     const handleShareTrip = async () => {
+        const plan = trip?.tripData?.trip_plan || trip?.tripData;
+        const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+        const shareData = {
+            title: `Trip to ${plan?.destination || 'Destination'} - Wanderer Travel`,
+            text: `Check out my AI-planned trip to ${plan?.destination || 'Destination'} on Wanderer Travel!`,
+            url: currentUrl
+        };
+
+        if (typeof navigator !== 'undefined' && navigator.share) {
+            try {
+                await navigator.share(shareData);
+                return;
+            } catch (err: any) {
+                if (err.name === 'AbortError') return;
+            }
+        }
+
         try {
-            await navigator.clipboard.writeText(window.location.href);
+            await navigator.clipboard.writeText(currentUrl);
             setToastMessage("Trip link copied to clipboard! Share it with your friends ✈️");
-            setTimeout(() => {
-                setToastMessage(null);
-            }, 3000);
         } catch (err) {
-            console.error("Failed to copy link:", err);
-            // Fallback
             const el = document.createElement('input');
-            el.value = window.location.href;
+            el.value = currentUrl;
             document.body.appendChild(el);
             el.select();
             document.execCommand('copy');
             document.body.removeChild(el);
             setToastMessage("Trip link copied to clipboard! Share it with your friends ✈️");
-            setTimeout(() => {
-                setToastMessage(null);
-            }, 3000);
         }
+        setTimeout(() => {
+            setToastMessage(null);
+        }, 3000);
     };
+
+    useEffect(() => {
+        if (trip && typeof window !== 'undefined') {
+            const searchParams = new URLSearchParams(window.location.search);
+            if (searchParams.get('print') === 'true') {
+                setTimeout(() => {
+                    window.print();
+                }, 1200);
+            }
+        }
+    }, [trip]);
 
   if (trip === undefined) {
     return (
@@ -281,6 +304,34 @@ function ViewTrip() {
             </div>
          </div>
       </motion.section>
+
+      {/* Quick Action Bar (Print / Share / Export) */}
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-4 md:p-5 rounded-3xl shadow-sm print:hidden">
+         <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shadow-inner">
+               <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+               <h3 className="text-sm md:text-base font-extrabold text-neutral-900 dark:text-white">Trip Itinerary Ready</h3>
+               <p className="text-xs text-neutral-500 font-medium">Download the printable PDF or share the live trip link</p>
+            </div>
+         </div>
+         <div className="flex items-center gap-2.5 w-full sm:w-auto">
+            <Button
+               onClick={handleDownloadPDF}
+               className="flex-1 sm:flex-initial rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs md:text-sm px-5 h-11 shadow-md shadow-blue-500/20 flex items-center gap-2 transition-all hover:scale-102 active:scale-98"
+            >
+               <Printer className="w-4 h-4" /> Download PDF
+            </Button>
+            <Button
+               onClick={handleShareTrip}
+               variant="outline"
+               className="flex-1 sm:flex-initial rounded-xl border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 font-extrabold text-xs md:text-sm px-5 h-11 flex items-center gap-2 transition-all hover:scale-102 active:scale-98"
+            >
+               <Share2 className="w-4 h-4 text-blue-500" /> Share Trip
+            </Button>
+         </div>
+      </div>
 
       {/* Hotels Section */}
       <section className="space-y-8">
