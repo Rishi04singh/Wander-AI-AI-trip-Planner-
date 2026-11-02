@@ -7,6 +7,7 @@ import { motion } from 'motion/react'
 import { Button } from '@/components/ui/button'
 import { Globe, Users, Wallet, MapPin, Sparkles, ChevronRight, Search, Calendar, Filter } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { getDestinationImage } from '@/lib/travelImages'
 
 function MyTrips() {
   const { userDetail } = useUserDetail();
@@ -112,7 +113,7 @@ function MyTrips() {
                    {/* Background Image Layer */}
                    <div className="absolute inset-0 bg-neutral-900 flex items-center justify-center overflow-hidden">
                       <img 
-                        src={`https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=800&auto=format&fit=crop`} 
+                        src={getDestinationImage(trip.userSelection.to || '')} 
                         alt={trip.userSelection.to} 
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-80"
                       />

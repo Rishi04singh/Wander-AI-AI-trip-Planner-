@@ -33,6 +33,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useUserDetail } from '../../provider';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { resolveTravelImage } from '@/lib/travelImages';
 import { useUser, useAuth } from '@clerk/nextjs';
 import Link from 'next/link';
 import { useLanguage } from "@/context/LanguageContext";
@@ -1251,11 +1252,11 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
                             src={
                               place.image || (messages[idx - 1]?.content === "Inspire me where to go"
                                 ? localImages[i % localImages.length]
-                                : `https://loremflickr.com/800/400/${encodeURIComponent(place.name)},travel/all`)
+                                : resolveTravelImage(place.name + " " + (place.category || "")))
                             } 
                             alt={place.name} 
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                            onError={(e) => { e.currentTarget.src = 'https://picsum.photos/800/400?grayscale'; }}
+                            onError={(e) => { e.currentTarget.src = resolveTravelImage(place.name); }}
                           />
                           <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/60 backdrop-blur-md text-white border border-white/20">
                             {place.category || "Featured"}
@@ -1282,7 +1283,7 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
 
                           <div className="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-white/5">
                             <button
-                              onClick={() => setSelectedPlace(place)}
+                              onClick={() => setSelectedPlace({ ...place, image: place.image || resolveTravelImage(place.name) })}
                               className="text-xs font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer"
                             >
                               View details
@@ -1380,7 +1381,8 @@ function Chatbox({ tripData, setTripData }: { tripData: any, setTripData: any })
             
             <div className="relative h-60 w-full">
               <img 
-                src={selectedPlace.image} 
+                src={selectedPlace.image || resolveTravelImage(selectedPlace.name)} 
+                onError={(e) => { e.currentTarget.src = resolveTravelImage(selectedPlace.name); }}
                 alt={selectedPlace.name} 
                 className="w-full h-full object-cover"
               />

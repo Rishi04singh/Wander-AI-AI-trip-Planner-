@@ -12,6 +12,7 @@ import TripMapGlobe from './_components/TripMapGlobe'
 import RideBookingModal from './_components/RideBookingModal'
 import MLAdaptiveTripPanel from './_components/MLAdaptiveTripPanel'
 import { motion, AnimatePresence } from 'motion/react'
+import { getDestinationImage } from '@/lib/travelImages'
 
 function ViewTrip() {
     const params = useParams()
@@ -63,7 +64,8 @@ function ViewTrip() {
         if (!plan?.destination) return;
 
         const data = {
-            textQuery: plan.destination
+            textQuery: plan.destination,
+            destination: plan.destination
         }
         try {
             const response = await axios.post('/api/google-place-details', data);
@@ -218,11 +220,11 @@ function ViewTrip() {
          className="relative h-[350px] md:h-[450px] w-full rounded-3xl overflow-hidden shadow-xl group"
       >
          <img 
-            src={venuePhotoUrl || `https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop`} 
+            src={venuePhotoUrl || getDestinationImage(plan?.destination || '')} 
             alt="Hero" 
             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-103"
             onError={(e: any) => {
-                e.target.src = `https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop`;
+                e.target.src = getDestinationImage(plan?.destination || '');
             }}
          />
 

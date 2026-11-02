@@ -3,6 +3,7 @@ import { MapPin, Map } from 'lucide-react'
 import axios from 'axios'
 import { Button } from '@/components/ui/button'
 import { motion } from 'motion/react'
+import { getHotelImage } from '@/lib/travelImages'
 
 interface HotelCardItemProps {
     hotel: {
@@ -33,7 +34,9 @@ function HotelCardItem({ hotel, onBookRide }: HotelCardItemProps) {
 
     const GetPlacePhoto = async () => {
         const data = {
-            textQuery: hotel.hotel_name + " in " + hotel.hotel_address
+            textQuery: hotel.hotel_name + " in " + hotel.hotel_address,
+            isHotel: true,
+            destination: hotel.hotel_address
         }
         try {
             const result = await axios.post('/api/google-place-details', data);
@@ -71,11 +74,11 @@ function HotelCardItem({ hotel, onBookRide }: HotelCardItemProps) {
         >
             <div className="h-48 relative overflow-hidden">
                 <img 
-                    src={photoUrl || hotel.hotel_image_url || `https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop`} 
+                    src={photoUrl || hotel.hotel_image_url || getHotelImage(hotel.hotel_address || hotel.hotel_name)} 
                     alt={hotel.hotel_name} 
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     onError={(e: any) => {
-                        e.target.src = `https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop`;
+                        e.target.src = getHotelImage(hotel.hotel_address || hotel.hotel_name);
                     }}
                 />
                 <div className="absolute top-4 right-4 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md px-3 py-1.5 rounded-xl text-[10px] font-extrabold text-blue-600 dark:text-blue-400 flex items-center gap-1 shadow-md border border-white/50 dark:border-neutral-800">

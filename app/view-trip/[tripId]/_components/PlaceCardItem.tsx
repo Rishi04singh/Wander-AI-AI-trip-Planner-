@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { MapPin } from 'lucide-react'
 import axios from 'axios'
 import { motion } from 'motion/react'
+import { resolveTravelImage } from '@/lib/travelImages'
 
 interface PlaceCardItemProps {
     activity: {
@@ -42,7 +43,9 @@ function PlaceCardItem({ activity, dayNumber, hourlyWeather, onBookRide }: Place
 
     const GetPlacePhoto = async () => {
         const data = {
-            textQuery: activity.place_name + " in " + activity.place_address
+            textQuery: activity.place_name + " in " + activity.place_address,
+            isHotel: false,
+            destination: activity.place_address
         }
         try {
             const result = await axios.post('/api/google-place-details', data);
@@ -127,11 +130,11 @@ function PlaceCardItem({ activity, dayNumber, hourlyWeather, onBookRide }: Place
         >
             <div className="w-full md:w-[220px] h-[150px] rounded-2xl overflow-hidden relative shrink-0 bg-neutral-100 dark:bg-neutral-800 shadow-inner">
                 <img 
-                    src={photoUrl || activity.place_image_url || `https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=2070&auto=format&fit=crop`} 
+                    src={photoUrl || activity.place_image_url || resolveTravelImage(activity.place_name + " " + activity.place_address)} 
                     alt={activity.place_name} 
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     onError={(e: any) => {
-                        e.target.src = `https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=2070&auto=format&fit=crop`;
+                        e.target.src = resolveTravelImage(activity.place_name + " " + activity.place_address);
                     }}
                 />
             </div>

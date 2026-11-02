@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { 
+    sanitizePlaceQuery, 
+    getLandmarkImage, 
+    resolveTravelImage, 
+    getHotelImage 
+} from "@/lib/travelImages";
 
 interface PlacesRequestBody {
     textQuery: string;
+    isHotel?: boolean;
+    category?: string;
+    destination?: string;
     location?: {
         latitude: number;
         longitude: number;
@@ -12,47 +21,83 @@ interface PlacesRequestBody {
     pageToken?: string;
 }
 
-async function fetchWikipediaImage(query: string): Promise<string | null> {
+const STOP_WORDS = new Set([
+    'the', 'and', 'for', 'near', 'with', 'from', 'hotel', 'resort', 'stay', 'palace',
+    'morning', 'evening', 'stroll', 'walk', 'visit', 'explore', 'tour', 'trip', 'in', 'at', 'of', 'to'
+]);
+
+function isWikiResultRelevant(query: string, title: string): boolean {
+    if (!query || !title) return false;
+    const qWords = query.toLowerCase().match(/[a-z]{3,}/g) || [];
+    const cleanQWords = qWords.filter(w => !STOP_WORDS.has(w));
+    if (cleanQWords.length === 0) return true;
+    const tLower = title.toLowerCase();
+
+    // Check if any significant query term is present in Wikipedia title
+    return cleanQWords.some(qw => tLower.includes(qw));
+}
+
+async function fetchVerifiedWikipediaImage(query: string): Promise<string | null> {
     try {
-        const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&prop=pageimages&pithumbsize=1000&format=json&gsrlimit=1`;
+        const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&prop=pageimages&pithumbsize=1000&format=json&gsrlimit=5`;
         const res = await fetch(searchUrl, {
             headers: {
                 'User-Agent': 'WanderAITravelApp/1.0 (support@wandertrip.com)'
-            }
+            },
+            next: { revalidate: 86400 }
         });
         if (!res.ok) return null;
         const json = await res.json();
         const pages = json.query?.pages;
         if (!pages) return null;
-        const pageId = Object.keys(pages)[0];
-        const thumbnail = pages[pageId]?.thumbnail?.source;
-        return thumbnail || null;
+
+        // Iterate through top 5 results to pick the first relevant thumbnail
+        for (const pageId of Object.keys(pages)) {
+            const page = pages[pageId];
+            const title = page?.title || "";
+            const thumbnail = page?.thumbnail?.source;
+            if (thumbnail && isWikiResultRelevant(query, title)) {
+                return thumbnail;
+            }
+        }
+        return null;
     } catch (e) {
-        console.error("Wikipedia search failed:", e);
         return null;
     }
 }
 
-async function getFallbackImage(query: string): Promise<string | null> {
-    // Try full query first
-    let img = await fetchWikipediaImage(query);
-    if (img) return img;
+/**
+ * Resolves the most accurate photo for a place query
+ */
+async function resolveAccuratePhoto(
+    rawQuery: string, 
+    options?: { isHotel?: boolean; category?: string; destination?: string }
+): Promise<string> {
+    const { cleanName, locationHint, isHotel: detectedHotel } = sanitizePlaceQuery(rawQuery);
+    const isHotel = Boolean(options?.isHotel || detectedHotel);
 
-    // Try first part before comma
-    if (query.includes(',')) {
-        const shortQuery = query.split(',')[0].trim();
-        img = await fetchWikipediaImage(shortQuery);
-        if (img) return img;
+    // 1. If it's a hotel, return authentic destination-tailored hotel photography
+    if (isHotel) {
+        return getHotelImage(`${rawQuery} ${options?.destination || ''}`);
     }
 
-    // Try query with only alphanumeric and spaces (removing special chars)
-    const cleanQuery = query.replace(/[^a-zA-Z0-9 ]/g, '').trim();
-    if (cleanQuery && cleanQuery !== query) {
-        img = await fetchWikipediaImage(cleanQuery);
-        if (img) return img;
+    // 2. Direct Iconic Landmark match (Pangong, Hadimba, Baga Beach, Hawa Mahal, etc.)
+    const landmarkImg = getLandmarkImage(cleanName, `${locationHint} ${options?.destination || ''}`);
+    if (landmarkImg) {
+        return landmarkImg;
     }
 
-    return null;
+    // 3. Search Wikipedia with clean query & verify relevancy
+    const searchTarget = `${cleanName} ${locationHint || options?.destination || ''}`.trim();
+    if (searchTarget.length > 2) {
+        const wikiImg = await fetchVerifiedWikipediaImage(searchTarget);
+        if (wikiImg) {
+            return wikiImg;
+        }
+    }
+
+    // 4. Fallback to destination & category-aware travel photography
+    return resolveTravelImage(rawQuery, options);
 }
 
 export async function POST(req: NextRequest) {
@@ -60,21 +105,28 @@ export async function POST(req: NextRequest) {
     const API_KEY = process.env.GOOGLE_PLACE_API_KEY;
     
     let textQuery = "";
+    let isHotel = false;
+    let category = "";
+    let destination = "";
+
     try {
         const body: PlacesRequestBody = await req.json();
         textQuery = body.textQuery || "";
+        isHotel = Boolean(body.isHotel);
+        category = body.category || "";
+        destination = body.destination || "";
     } catch (e) {
         return NextResponse.json({ error: "Invalid request body", places: [] }, { status: 200 });
     }
 
-    // Define fallback response construction
+    // Helper to build verified response
     const buildFallbackResponse = async () => {
-        const fallbackUrl = await getFallbackImage(textQuery);
+        const photoUrl = await resolveAccuratePhoto(textQuery, { isHotel, category, destination });
         return NextResponse.json({
             places: [
                 {
                     displayName: { text: textQuery },
-                    photoUrl: fallbackUrl || `https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=2070&auto=format&fit=crop`
+                    photoUrl
                 }
             ]
         });
@@ -102,12 +154,11 @@ export async function POST(req: NextRequest) {
         try {
             data = JSON.parse(text);
         } catch (e) {
-            console.error("Failed to parse Google API response as JSON. Content:", text);
+            console.error("Failed to parse Google API response as JSON:", text);
             return await buildFallbackResponse();
         }
 
         if (!response.ok || !data.places || data.places.length === 0) {
-            console.error("Google Places API error or empty response. Details:", data);
             return await buildFallbackResponse();
         }
 
@@ -118,9 +169,7 @@ export async function POST(req: NextRequest) {
             place.photoUrl = photoUrl;
             return NextResponse.json(data);
         } else {
-            // No photos found on Google, use Wikipedia fallback
-            const fallbackUrl = await getFallbackImage(textQuery);
-            place.photoUrl = fallbackUrl || `https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=2070&auto=format&fit=crop`;
+            place.photoUrl = await resolveAccuratePhoto(textQuery, { isHotel, category, destination });
             return NextResponse.json(data);
         }
     } catch (error: any) {
