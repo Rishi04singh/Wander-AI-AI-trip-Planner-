@@ -189,43 +189,79 @@ export class WanderMLSuite {
     const reqLower = (customerRequest || '').toLowerCase();
     let totalSaved = 30;
 
+    // Extract target days if user mentioned specific days (e.g. "Day 2", "Day 1", "second day", etc.)
+    const targetDays: number[] = [];
+    const dayMatches = reqLower.matchAll(/\bday\s*[-#]?\s*(\d+)\b/g);
+    for (const match of dayMatches) {
+      if (match[1]) targetDays.push(parseInt(match[1]));
+    }
+    if (/\b(?:1st|first)\s+day\b/.test(reqLower) || /\bday\s+(?:one|1)\b/.test(reqLower)) targetDays.push(1);
+    if (/\b(?:2nd|second)\s+day\b/.test(reqLower) || /\bday\s+(?:two|2)\b/.test(reqLower)) targetDays.push(2);
+    if (/\b(?:3rd|third)\s+day\b/.test(reqLower) || /\bday\s+(?:three|3)\b/.test(reqLower)) targetDays.push(3);
+    if (/\b(?:4th|fourth)\s+day\b/.test(reqLower) || /\bday\s+(?:four|4)\b/.test(reqLower)) targetDays.push(4);
+    if (/\b(?:5th|fifth)\s+day\b/.test(reqLower) || /\bday\s+(?:five|5)\b/.test(reqLower)) targetDays.push(5);
+
+    const hasTargetDays = targetDays.length > 0;
+
     const adaptedItinerary: MLAdaptiveItineraryItem[] = (rawItinerary || []).map((dayItem: any, idx: number) => {
       const dayNum = dayItem.day || (idx + 1);
+      const isTargetDay = hasTargetDays ? targetDays.includes(dayNum) : true;
       const originalTitle = dayItem.day_plan || `Day ${dayNum} Exploration`;
+      const cleanTitle = originalTitle.replace(/^\[[^\]]+\]\s*/, '');
       let adaptedTitle = originalTitle;
       let action: MLAdaptiveItineraryItem['optimizationAction'] = 'Optimal';
       let weatherWarn: string | undefined = undefined;
       let trafficWarn: string | undefined = undefined;
       let customerNote: string | undefined = undefined;
 
-      if (reqLower.includes('rain') || reqLower.includes('wet') || reqLower.includes('monsoon') || (weather.climate.condition === 'Rainy' && (idx % 2 === 0))) {
-        adaptedTitle = `[Indoor Swapped] ${originalTitle.replace(/Hike|Walk|Beach|Outdoor|Trek/i, 'Museum, Palace & Covered Arts Gallery')}`;
-        action = 'Indoor Swapped';
-        weatherWarn = `🌧️ Monsoon rain predicted (${weather.climate.precipitationProb}%). Outdoor activities shifted to indoor royal palaces & markets.`;
-        customerNote = 'Swapped to sheltered cultural venues to avoid rain disruption.';
-        totalSaved += 25;
-      } else if (reqLower.includes('traffic') || reqLower.includes('jam') || reqLower.includes('delay') || traffic.traffic.congestionIndex === 'Heavy') {
-        adaptedTitle = `[Route Shifted] ${originalTitle} (Depart at ${traffic.traffic.bestDepartureWindows[0]})`;
-        action = 'Timing Shifted';
-        trafficWarn = `🚗 Tourist traffic peak expected. Depart early at ${traffic.traffic.bestDepartureWindows[0]}.`;
-        customerNote = 'Shifted schedule to bypass peak traffic corridor bottlenecks.';
-        totalSaved += 20;
-      } else if (reqLower.includes('flight') || reqLower.includes('train') || reqLower.includes('late') || reqLower.includes('compress')) {
-        if (dayNum === 1) {
-          adaptedTitle = `[Schedule Compressed] ${originalTitle} (Express Evening Highlights & Dinner)`;
+      if (isTargetDay) {
+        if (reqLower.includes('rain') || reqLower.includes('wet') || reqLower.includes('monsoon') || reqLower.includes('indoor')) {
+          adaptedTitle = `[Indoor Swapped] ${cleanTitle.replace(/Hike|Walk|Beach|Outdoor|Trek/i, 'Museum, Palace & Covered Arts Gallery')}`;
+          action = 'Indoor Swapped';
+          weatherWarn = `🌧️ Rain Alert for Day ${dayNum}. Outdoor activities shifted to indoor royal palaces & markets.`;
+          customerNote = `Adapted Day ${dayNum} for rain: Swapped to sheltered cultural venues to avoid rain disruption.`;
+          totalSaved += 25;
+        } else if (reqLower.includes('traffic') || reqLower.includes('jam') || reqLower.includes('delay') || traffic.traffic.congestionIndex === 'Heavy') {
+          adaptedTitle = `[Route Shifted] ${cleanTitle} (Depart at ${traffic.traffic.bestDepartureWindows[0]})`;
+          action = 'Timing Shifted';
+          trafficWarn = `🚗 Tourist traffic peak expected. Depart early at ${traffic.traffic.bestDepartureWindows[0]}.`;
+          customerNote = `Adapted Day ${dayNum} for traffic: Shifted schedule to bypass peak traffic bottlenecks.`;
+          totalSaved += 20;
+        } else if (reqLower.includes('flight') || reqLower.includes('train') || reqLower.includes('late') || reqLower.includes('compress')) {
+          adaptedTitle = `[Schedule Compressed] ${cleanTitle} (Express Evening Highlights & Dinner)`;
           action = 'Schedule Compressed';
-          customerNote = 'Compressed Day 1 to fit late arrival without missing key sights.';
+          customerNote = `Adapted Day ${dayNum} for delay: Compressed schedule to fit late arrival without missing key sights.`;
           totalSaved += 45;
+        } else if (reqLower.includes('relax') || reqLower.includes('cafe') || reqLower.includes('sunset') || reqLower.includes('slow')) {
+          adaptedTitle = `[Relaxed Pace] ${cleanTitle.replace(/Trek|Hike/i, 'Lakeside Stroll & Heritage Cafe')}`;
+          action = 'Relaxed Pace';
+          customerNote = `Adapted Day ${dayNum} for comfort: Replaced tiring segments with relaxed dining and sightseeing.`;
+          totalSaved += 15;
+        } else if (weather.climate.condition === 'Extreme Heat') {
+          adaptedTitle = `${originalTitle} (Morning & Evening Slot)`;
+          action = 'Timing Shifted';
+          weatherWarn = `☀️ Afternoon temperature expected high (${weather.climate.maxTempC}°C). Midday outdoor visits shifted to evening.`;
         }
-      } else if (reqLower.includes('relax') || reqLower.includes('cafe') || reqLower.includes('sunset') || reqLower.includes('slow')) {
-        adaptedTitle = `[Relaxed Pace] ${originalTitle.replace(/Trek|Hike/i, 'Lakeside Stroll & Heritage Cafe')}`;
-        action = 'Relaxed Pace';
-        customerNote = 'Replaced tiring itinerary segments with relaxed dining and sightseeing.';
-        totalSaved += 15;
-      } else if (weather.climate.condition === 'Extreme Heat') {
-        adaptedTitle = `${originalTitle} (Morning & Evening Slot)`;
-        action = 'Timing Shifted';
-        weatherWarn = `☀️ Afternoon temperature expected high (${weather.climate.maxTempC}°C). Midday outdoor visits shifted to evening.`;
+      } else {
+        // Non-targeted days remain optimal and unchanged
+        action = 'Optimal';
+        adaptedTitle = originalTitle;
+        customerNote = undefined;
+      }
+
+      // Also adapt activities if present on targeted day
+      let adaptedActivities = dayItem.activities;
+      if (Array.isArray(dayItem.activities)) {
+        adaptedActivities = dayItem.activities.map((act: any) => {
+          if (isTargetDay && action === 'Indoor Swapped') {
+            const det = act.place_details || '';
+            return {
+              ...act,
+              place_details: det.startsWith('[Sheltered Venue]') ? det : `[Sheltered / Indoor Venue] ${det}`
+            };
+          }
+          return act;
+        });
       }
 
       return {
@@ -235,7 +271,8 @@ export class WanderMLSuite {
         weatherWarning: weatherWarn,
         trafficWarning: trafficWarn,
         customerNote,
-        optimizationAction: action
+        optimizationAction: action,
+        activities: adaptedActivities
       };
     });
 

@@ -189,10 +189,18 @@ export default function MLAdaptiveTripPanel({ destination, itinerary, onItinerar
             <h4 className="text-xs font-black uppercase text-neutral-300 tracking-wider">ML Optimized Days</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {adaptedData.adaptedItinerary?.map((item: any, i: number) => (
-                <div key={i} className="p-3.5 bg-white/5 rounded-xl border border-white/10 text-xs space-y-1.5">
+                <div key={i} className={`p-3.5 rounded-xl border text-xs space-y-1.5 transition-all ${
+                  item.optimizationAction !== 'Optimal' 
+                    ? 'bg-cyan-950/40 border-cyan-500/40 shadow-lg shadow-cyan-950/20' 
+                    : 'bg-white/5 border-white/10'
+                }`}>
                   <div className="flex items-center justify-between">
                     <span className="font-extrabold text-cyan-300">Day {item.day}</span>
-                    <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-300 text-[9px] font-black rounded-md">
+                    <span className={`px-2 py-0.5 text-[9px] font-black rounded-md ${
+                      item.optimizationAction !== 'Optimal'
+                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    }`}>
                       {item.optimizationAction}
                     </span>
                   </div>

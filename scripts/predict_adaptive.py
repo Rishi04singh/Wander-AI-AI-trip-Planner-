@@ -35,6 +35,32 @@ def predict(input_data):
 
     customer_req = str(input_data.get('customerRequest', input_data.get('disruptionType', input_data.get('customer_request', '')))).strip().lower()
 
+    # Extract target days if user mentioned specific days (e.g. "Day 2", "Day 1", "second day", etc.)
+    import re
+    target_days = []
+    for m in re.finditer(r'\bday\s*[-#]?\s*(\d+)\b', customer_req):
+        target_days.append(int(m.group(1)))
+    ordinal_map = {
+        r'\b(?:1st|first)\s+day\b': 1,
+        r'\bday\s+(?:one|1)\b': 1,
+        r'\b(?:2nd|second)\s+day\b': 2,
+        r'\bday\s+(?:two|2)\b': 2,
+        r'\b(?:3rd|third)\s+day\b': 3,
+        r'\bday\s+(?:three|3)\b': 3,
+        r'\b(?:4th|fourth)\s+day\b': 4,
+        r'\bday\s+(?:four|4)\b': 4,
+        r'\b(?:5th|fifth)\s+day\b': 5,
+        r'\bday\s+(?:five|5)\b': 5,
+        r'\b(?:6th|sixth)\s+day\b': 6,
+        r'\bday\s+(?:six|6)\b': 6,
+        r'\b(?:7th|seventh)\s+day\b': 7,
+        r'\bday\s+(?:seven|7)\b': 7,
+    }
+    for pattern, d in ordinal_map.items():
+        if re.search(pattern, customer_req):
+            target_days.append(d)
+    target_days = sorted(list(set(target_days)))
+
     # Run weather and traffic engines
     weather_res = predict_weather_engine({'destination': destination, 'travelMonth': month})['data']
     traffic_res = predict_traffic_engine({'destination': destination, 'travelMonth': month})['data']
@@ -93,50 +119,79 @@ def predict(input_data):
         else:
             suitability = float(reg_model.predict(sample_trans)[0][0])
 
+        # Check if user specified particular day(s) to modify
+        is_target_day = (day_num in target_days) if target_days else True
+
         # CUSTOMER NEED / DISRUPTION OVERRIDES
+        clean_plan = re.sub(r'^\[[^\]]+\]\s*', '', original_plan)
         adapted_plan = original_plan
         weather_warn = None
         traffic_warn = None
         customer_note = None
 
-        if any(k in customer_req for k in ['rain', 'water', 'indoor', 'wet', 'storm', 'monsoon']) or (action == 'Indoor Swapped'):
-            adapted_plan = f"[Indoor Swapped] {original_plan.replace('Trek', 'Museum & Cultural Gallery').replace('Outdoor', 'Indoor Heritage Pavilion').replace('Beach', 'Local Aquarium & Spice Plantation')}"
-            weather_warn = f"🌧️ Weather Alert: Rainy weather expected ({weather_res['precipitationProb']}% rain risk). Swapped to weather-shielded indoor cultural attractions."
-            action = 'Indoor Swapped'
-            customer_note = "Adapted for rain: Outdoor trekking swapped for indoor cultural galleries & covered dining."
-            total_time_saved_min += 45
-        elif any(k in customer_req for k in ['traffic', 'jam', 'delay', 'rush', 'bottleneck', 'road']):
-            adapted_plan = f"[Route Shifted] {original_plan} (Via Bypass Route at {traffic_res['bestDepartureWindows'][0]})"
-            traffic_warn = f"🚗 Congestion Notice: Severe bottleneck detected. Depart early at {traffic_res['bestDepartureWindows'][0]} to avoid 40+ min delay."
-            action = 'Timing Shifted'
-            customer_note = "Adapted for traffic: Departed during non-peak window via scenic expressway bypass."
-            total_time_saved_min += 35
-        elif any(k in customer_req for k in ['flight', 'train', 'late', 'delayed', 'compress', 'shorten']):
-            if day_num == 1:
-                adapted_plan = f"[Compressed Schedule] {original_plan} (Consolidated Express Evening Tour & Dinner)"
+        if is_target_day:
+            if any(k in customer_req for k in ['rain', 'water', 'indoor', 'wet', 'storm', 'monsoon']) or (action == 'Indoor Swapped'):
+                adapted_plan = f"[Indoor Swapped] {clean_plan.replace('Trek', 'Museum & Cultural Gallery').replace('Outdoor', 'Indoor Heritage Pavilion').replace('Beach', 'Local Aquarium & Spice Plantation')}"
+                weather_warn = f"🌧️ Weather Alert for Day {day_num}: Rain expected ({weather_res['precipitationProb']}% risk). Outdoor activities swapped to weather-shielded indoor venues."
+                action = 'Indoor Swapped'
+                customer_note = f"Adapted Day {day_num} for rain: Outdoor activities swapped for indoor cultural galleries & covered dining."
+                total_time_saved_min += 45
+            elif any(k in customer_req for k in ['traffic', 'jam', 'delay', 'rush', 'bottleneck', 'road']):
+                adapted_plan = f"[Route Shifted] {clean_plan} (Via Bypass Route at {traffic_res['bestDepartureWindows'][0]})"
+                traffic_warn = f"🚗 Congestion Notice for Day {day_num}: Severe bottleneck detected. Depart early at {traffic_res['bestDepartureWindows'][0]} to avoid delay."
+                action = 'Timing Shifted'
+                customer_note = f"Adapted Day {day_num} for traffic: Departed during non-peak window via scenic expressway bypass."
+                total_time_saved_min += 35
+            elif any(k in customer_req for k in ['flight', 'train', 'late', 'delayed', 'compress', 'shorten']):
+                adapted_plan = f"[Compressed Schedule] {clean_plan} (Consolidated Express Highlights & Dinner)"
                 action = 'Schedule Compressed'
-                customer_note = "Adapted for delay: Streamlined Day 1 to avoid missing main highlights after late check-in."
+                customer_note = f"Adapted Day {day_num} for delay: Streamlined schedule to avoid missing main highlights."
                 total_time_saved_min += 60
-            else:
-                adapted_plan = original_plan
-        elif any(k in customer_req for k in ['relax', 'cafe', 'chill', 'sunset', 'slow', 'peace', 'less walk']):
-            adapted_plan = f"[Relaxed Pace] {original_plan.replace('Trek', 'Scenic Lake Promenade').replace('Forts', 'Artisan Cafe & Royal Gardens')}"
-            action = 'Relaxed Pace'
-            customer_note = "Adapted for customer comfort: Reduced walking fatigue with scenic cafe stops and relaxed evening stroll."
-            total_time_saved_min += 20
-        elif any(k in customer_req for k in ['budget', 'cheap', 'free', 'cost']):
-            adapted_plan = f"[Budget Friendly] {original_plan} (Free Entry Heritage Strolls & Street Food Market)"
-            action = 'Budget Optimized'
-            customer_note = "Adapted for budget: Prioritized zero-entry historical monuments and public ghats/bazaars."
-            total_time_saved_min += 15
-        elif action == 'Timing Shifted':
-            if weather_res['condition'] == 'Extreme Heat':
-                adapted_plan = f"{original_plan} (Shifted to {weather_res['bestTimeOfDayForTours']})"
-                weather_warn = f"☀️ Heat Advisory: High temperature ({weather_res['avgTempC']}°C). Midday outdoor visit shifted to cooler sunrise/sunset hours."
-            else:
-                adapted_plan = f"{original_plan} (Shifted to {traffic_res['bestDepartureWindows'][0]})"
-                traffic_warn = f"🚗 Congestion Notice: {traffic_res['congestionIndex']} tourist traffic (+{traffic_res['predictedDelayMinutesPerTrip']}m delay). Depart at {traffic_res['bestDepartureWindows'][0]}."
-            total_time_saved_min += 25
+            elif any(k in customer_req for k in ['relax', 'cafe', 'chill', 'sunset', 'slow', 'peace', 'less walk']):
+                adapted_plan = f"[Relaxed Pace] {clean_plan.replace('Trek', 'Scenic Lake Promenade').replace('Forts', 'Artisan Cafe & Royal Gardens')}"
+                action = 'Relaxed Pace'
+                customer_note = f"Adapted Day {day_num} for comfort: Reduced walking fatigue with scenic cafe stops and relaxed evening stroll."
+                total_time_saved_min += 20
+            elif any(k in customer_req for k in ['budget', 'cheap', 'free', 'cost']):
+                adapted_plan = f"[Budget Friendly] {clean_plan} (Free Entry Heritage Strolls & Street Food Market)"
+                action = 'Budget Optimized'
+                customer_note = f"Adapted Day {day_num} for budget: Prioritized zero-entry historical monuments and public ghats/bazaars."
+                total_time_saved_min += 15
+            elif action == 'Timing Shifted':
+                if weather_res['condition'] == 'Extreme Heat':
+                    adapted_plan = f"{clean_plan} (Shifted to {weather_res['bestTimeOfDayForTours']})"
+                    weather_warn = f"☀️ Heat Advisory: High temperature ({weather_res['avgTempC']}°C). Midday outdoor visit shifted to cooler sunrise/sunset hours."
+                else:
+                    adapted_plan = f"{clean_plan} (Shifted to {traffic_res['bestDepartureWindows'][0]})"
+                    traffic_warn = f"🚗 Congestion Notice: {traffic_res['congestionIndex']} tourist traffic. Depart at {traffic_res['bestDepartureWindows'][0]}."
+                total_time_saved_min += 25
+        else:
+            # Days not targeted by the customer remain untouched and optimal
+            action = 'Optimal'
+            adapted_plan = original_plan
+            customer_note = None
+            weather_warn = None
+            traffic_warn = None
+
+        # Also adapt activities if present on target day
+        adapted_activities = []
+        if day_obj.get('activities') and isinstance(day_obj.get('activities'), list):
+            for act in day_obj.get('activities'):
+                act_copy = dict(act)
+                if is_target_day:
+                    if action == 'Indoor Swapped':
+                        det = act_copy.get('place_details', '')
+                        if not det.startswith('[Sheltered Venue]'):
+                            act_copy['place_details'] = f"[Sheltered / Indoor Venue] {det}"
+                    elif action == 'Timing Shifted':
+                        det = act_copy.get('place_details', '')
+                        if not det.startswith('[Timing Adjusted]'):
+                            act_copy['place_details'] = f"[Timing Adjusted] {det}"
+                    elif action == 'Relaxed Pace':
+                        det = act_copy.get('place_details', '')
+                        if not det.startswith('[Relaxed Leisure Stop]'):
+                            act_copy['place_details'] = f"[Relaxed Leisure Stop] {det}"
+                adapted_activities.append(act_copy)
 
         day_suitabilities.append(suitability)
 
@@ -147,7 +202,8 @@ def predict(input_data):
             "weatherWarning": weather_warn,
             "trafficWarning": traffic_warn,
             "customerNote": customer_note,
-            "optimizationAction": action
+            "optimizationAction": action,
+            "activities": adapted_activities
         })
 
     overall_score = int(np.clip(round(np.mean(day_suitabilities)), 50, 99))

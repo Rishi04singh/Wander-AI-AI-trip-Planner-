@@ -37,7 +37,8 @@ function ViewTrip() {
                         customerNote: match.customerNote,
                         weatherWarning: match.weatherWarning,
                         trafficWarning: match.trafficWarning,
-                        optimizationAction: match.optimizationAction
+                        optimizationAction: match.optimizationAction,
+                        activities: (match.activities && match.activities.length > 0) ? match.activities : day.activities
                     };
                 }
                 return day;
