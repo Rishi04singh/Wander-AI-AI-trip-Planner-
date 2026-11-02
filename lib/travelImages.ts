@@ -147,6 +147,28 @@ export const LANDMARK_REGISTRY: { patterns: string[]; imageUrl: string }[] = [
     imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80' // Kerala coastline beach
   },
 
+  // --- DELHI NCR & NOIDA ---
+  {
+    patterns: ['kidzania', 'snow world', 'worlds of wonder', 'wow noida', 'appu ghar', 'adventure island'],
+    imageUrl: 'https://images.unsplash.com/photo-1513889961551-628c1e5e2ee9?auto=format&fit=crop&w=1200&q=80' // Amusement / Indoor Snow World / Theme Park
+  },
+  {
+    patterns: ['noida golf course', 'golf course', 'golf grounds', 'golf club'],
+    imageUrl: 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?auto=format&fit=crop&w=1200&q=80' // Lush green Golf Course
+  },
+  {
+    patterns: ['dlf mall', 'mall of india', 'dlf mall of india', 'great india place', 'gip noida', 'pacific mall', 'ambience mall', 'select citywalk'],
+    imageUrl: 'https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?auto=format&fit=crop&w=1200&q=80' // Modern luxury shopping mall
+  },
+  {
+    patterns: ['sector 18', 'sector 18 market', 'atta market', 'brahmaputra market', 'chandni chowk', 'sarojini nagar', 'connaught place', 'cp delhi', 'khan market'],
+    imageUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1200&q=80' // Vibrant city market & high street
+  },
+  {
+    patterns: ['akshardham', 'swaminarayan akshardham', 'lotus temple', 'qutub minar', 'qutb minar', 'humayun tomb', 'red fort delhi', 'india gate'],
+    imageUrl: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=1200&q=80' // Iconic Delhi NCR monuments
+  },
+
   // --- VARANASI & UTTAR PRADESH ---
   {
     patterns: ['dashashwamedh', 'ganga aarti', 'assi ghat', 'manikarnika', 'varanasi ghat', 'boating in ganges'],
@@ -230,6 +252,14 @@ export const LANDMARK_REGISTRY: { patterns: string[]; imageUrl: string }[] = [
 
 // Curated verified Destination Hero Images (for main banner, trips list, chat recommendations)
 export const DESTINATION_REGISTRY: { patterns: string[]; imageUrl: string }[] = [
+  {
+    patterns: ['delhi', 'new delhi', 'noida', 'greater noida', 'gurgaon', 'gurugram', 'ncr', 'ghaziabad', 'faridabad'],
+    imageUrl: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=1200&q=80' // Modern Delhi NCR skyline & monument
+  },
+  {
+    patterns: ['lucknow', 'gorakhpur', 'kanpur', 'prayagraj', 'allahabad', 'ayodhya'],
+    imageUrl: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=1200&q=80' // Uttar Pradesh heritage
+  },
   {
     patterns: ['leh', 'ladakh', 'nubra', 'pangong', 'kargil', 'zanskar'],
     imageUrl: 'https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?auto=format&fit=crop&w=1200&q=80' // Dramatic Leh Ladakh Himalayan landscape
@@ -364,6 +394,13 @@ export const HOTEL_REGISTRY: { patterns: string[]; imageUrl: string }[] = [
 
 // Category fallbacks
 export const CATEGORY_REGISTRY: Record<string, string> = {
+  golf: 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?auto=format&fit=crop&w=1200&q=80',
+  mall: 'https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?auto=format&fit=crop&w=1200&q=80',
+  amusement: 'https://images.unsplash.com/photo-1513889961551-628c1e5e2ee9?auto=format&fit=crop&w=1200&q=80',
+  sunset: 'https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?auto=format&fit=crop&w=1200&q=80',
+  park: 'https://images.unsplash.com/photo-1588880331179-bc9b93a8cb5e?auto=format&fit=crop&w=1200&q=80',
+  station: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1200&q=80',
+  city: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=1200&q=80',
   mountain: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80',
   trekking: 'https://images.unsplash.com/photo-1502784444187-359ac186c5bb?auto=format&fit=crop&w=1200&q=80',
   beach: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
@@ -374,12 +411,12 @@ export const CATEGORY_REGISTRY: Record<string, string> = {
   lake: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1200&q=80',
   market: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1200&q=80',
   cafe: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80',
-  dining: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80',
+  dining: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1200&q=80',
   hotel: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80',
   travel: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80'
 };
 
-const NOISE_PREFIX_REGEX = /^(?:visit(?:\s+to)?|explore|exploring|tour(?:\s+of)?|trip(?:\s+to)?|morning\s+(?:walk|stroll|drive|hike)(?:\s+at|\s+to|\s+around)?|evening\s+(?:walk|stroll|visit|drive)(?:\s+at|\s+to|\s+around)?|sunset\s+(?:at|view\s+at|from)?|sunrise\s+(?:at|view\s+at|from)?|dinner\s+at|lunch\s+at|breakfast\s+at|sightseeing(?:\s+at|\s+in)?|excursion(?:\s+to)?|drive(?:\s+to|\s+through)?|relax(?:\s+at|\s+in)?|relaxation(?:\s+at|\s+in)?|shopping(?:\s+at|\s+in)?|wander(?:\s+around|\s+through)?|discovering|journey(?:\s+to)?|checkout|check-out\s+from|check-in\s+at)\s+/i;
+const NOISE_PREFIX_REGEX = /^(?:(?:\d+\s*(?:mins?|hours?|km)\s*(?:from|to)\s*[^:]+:?\s*)|visit(?:\s+to)?|explore|exploring|tour(?:\s+of)?|trip(?:\s+to)?|(?:morning|evening|afternoon|night)\s+(?:walk|stroll|drive|hike|visit)(?:\s+at|\s+to|\s+around)?|sunset\s+(?:at|view\s+at|from)?|sunrise\s+(?:at|view\s+at|from)?|(?:farewell|welcome)\s+(?:dinner|lunch|party|drinks)(?:\s+at|\s+in)?|dinner\s+at|lunch\s+at|breakfast\s+at|sightseeing(?:\s+at|\s+in)?|excursion(?:\s+to)?|drive(?:\s+to|\s+through)?|relax(?:\s+at|\s+in)?|relaxation(?:\s+at|\s+in)?|shopping(?:\s+at|\s+in)?|wander(?:\s+around|\s+through)?|discovering|journey(?:\s+to)?|checkout|check-out\s+from|check-in\s+at)\s+/i;
 
 const HOTEL_KEYWORD_REGEX = /\b(?:hotel|resort|palace|haveli|inn|suites?|homestay|hostel|villa|cottage|stay|camp|glamping|lodge|retreat|chalet|guest\s*house)\b/i;
 
@@ -482,17 +519,24 @@ export function resolveTravelImage(
     }
   }
 
-  // Look for category words in place name
-  if (/monastery|gompa|stupa|shrine/i.test(cleanName)) return CATEGORY_REGISTRY.monastery;
-  if (/temple|mandir|church|cathedral|mosque|gurudwara/i.test(cleanName)) return CATEGORY_REGISTRY.temple;
-  if (/beach|coast|shore|cove/i.test(cleanName)) return CATEGORY_REGISTRY.beach;
-  if (/waterfall|falls|cascade/i.test(cleanName)) return CATEGORY_REGISTRY.waterfall;
-  if (/lake|tso|tal|dam|river/i.test(cleanName)) return CATEGORY_REGISTRY.lake;
-  if (/fort|palace|haveli|monument|ruins/i.test(cleanName)) return CATEGORY_REGISTRY.fort;
-  if (/pass|peak|valley|trek|hiking|trail/i.test(cleanName)) return CATEGORY_REGISTRY.mountain;
-  if (/cafe|bistro|coffee|bakery|restaurant|bar|pub/i.test(cleanName)) return CATEGORY_REGISTRY.cafe;
-  if (/market|bazaar|street|mall/i.test(cleanName)) return CATEGORY_REGISTRY.market;
+  // Look for category words in place name or full text
+  if (/golf/i.test(fullText)) return CATEGORY_REGISTRY.golf;
+  if (/kidzania|snow\s*world|amusement|theme\s*park|water\s*park|adventure\s*island|wonder/i.test(fullText)) return CATEGORY_REGISTRY.amusement;
+  if (/mall|dlf|shopping\s*center|shopping\s*complex/i.test(fullText)) return CATEGORY_REGISTRY.mall;
+  if (/dinner|lunch|breakfast|dining|farewell|food|restaurant|dhaba|eatery|buffet|bistro|cafe/i.test(fullText)) return CATEGORY_REGISTRY.dining;
+  if (/sunset|sunrise|viewpoint|deck/i.test(fullText)) return CATEGORY_REGISTRY.sunset;
+  if (/park|garden|golf\s*grounds|ground/i.test(fullText)) return CATEGORY_REGISTRY.park;
+  if (/station|metro|railway|airport|transit|bus\s*terminal|terminal|boarding/i.test(fullText)) return CATEGORY_REGISTRY.station;
+  if (/monastery|gompa|stupa|shrine/i.test(fullText)) return CATEGORY_REGISTRY.monastery;
+  if (/temple|mandir|church|cathedral|mosque|gurudwara/i.test(fullText)) return CATEGORY_REGISTRY.temple;
+  if (/beach|coast|shore|cove/i.test(fullText)) return CATEGORY_REGISTRY.beach;
+  if (/waterfall|falls|cascade/i.test(fullText)) return CATEGORY_REGISTRY.waterfall;
+  if (/lake|tso|tal|dam|river/i.test(fullText)) return CATEGORY_REGISTRY.lake;
+  if (/fort|palace|haveli|monument|ruins/i.test(fullText)) return CATEGORY_REGISTRY.fort;
+  if (/pass|peak|valley|trek|hiking|trail/i.test(fullText)) return CATEGORY_REGISTRY.mountain;
+  if (/market|bazaar|street/i.test(fullText)) return CATEGORY_REGISTRY.market;
 
   // 4. Fallback to destination photo
   return getDestinationImage(fullText);
 }
+

@@ -87,12 +87,21 @@ async function resolveAccuratePhoto(
         return landmarkImg;
     }
 
-    // 3. Search Wikipedia with clean query & verify relevancy
-    const searchTarget = `${cleanName} ${locationHint || options?.destination || ''}`.trim();
-    if (searchTarget.length > 2) {
-        const wikiImg = await fetchVerifiedWikipediaImage(searchTarget);
-        if (wikiImg) {
-            return wikiImg;
+    // 3. Search Wikipedia with clean sub-queries & verify relevancy
+    const primaryCandidate = cleanName.split(/[\/\(]/)[0].trim();
+    const candidates = [cleanName, primaryCandidate];
+    const parenMatch = cleanName.match(/\(([^)]+)\)/);
+    if (parenMatch && parenMatch[1]) {
+        candidates.push(parenMatch[1].trim());
+    }
+
+    for (const cand of candidates) {
+        if (cand && cand.length > 2) {
+            const searchTarget = `${cand} ${locationHint || options?.destination || ''}`.trim();
+            const wikiImg = await fetchVerifiedWikipediaImage(searchTarget);
+            if (wikiImg) {
+                return wikiImg;
+            }
         }
     }
 
