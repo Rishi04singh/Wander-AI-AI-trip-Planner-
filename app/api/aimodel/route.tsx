@@ -67,46 +67,69 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        const geminiApiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-        const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+        const rawGeminiKey = (process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "").trim();
+        const openRouterApiKey = (process.env.OPENROUTER_API_KEY || "").trim();
 
-        let openai: OpenAI;
-        let modelName: string;
-
-        if (geminiApiKey) {
-          openai = new OpenAI({
-            baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-            apiKey: geminiApiKey,
-          });
-          modelName = "gemini-3.6-flash";
-        } else {
-          openai = new OpenAI({
-            baseURL: "https://openrouter.ai/api/v1",
-            apiKey: openRouterApiKey || "",
-          });
-          modelName = "openai/gpt-4o-mini";
-        }
+        // Validate Gemini key format: Arcjet keys start with 'AQ.' or 'ajkey_', whereas genuine Gemini keys start with 'AIzaSy'
+        const isGeminiKeyValid = rawGeminiKey.startsWith("AIzaSy") && !rawGeminiKey.startsWith("AQ.");
 
         let systemPrompt = PROMPT;
         if (language === 'hi') {
           systemPrompt += `\n\nCRITICAL LANGUAGE INSTRUCTION: The user prefers Hindi (हिंदी). You MUST generate all text, itineraries, hotel descriptions, place tips, and conversational responses in fluent, natural Hindi (Devanagari script). Keep the JSON keys in English so the frontend parser works smoothly, but ensure all textual values and descriptions are in Hindi.`;
         }
 
-        const completion = await openai.chat.completions.create({
-            model: modelName,
-            response_format: {
-                type: 'json_object'
-            },
-            messages: [
-                {
-                    role: 'system',
-                    content: systemPrompt
-                },
-                ...messages
-            ],
-        });
-      
-        console.log(completion.choices[0].message);
+        const chatMessages = [
+          {
+            role: 'system' as const,
+            content: systemPrompt
+          },
+          ...messages
+        ];
+
+        let completion: any = null;
+        let lastError: any = null;
+
+        // 1. Try Gemini if valid key provided
+        if (isGeminiKeyValid) {
+          try {
+            const geminiClient = new OpenAI({
+              baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+              apiKey: rawGeminiKey,
+            });
+            completion = await geminiClient.chat.completions.create({
+              model: "gemini-2.0-flash",
+              response_format: { type: 'json_object' },
+              messages: chatMessages,
+            });
+          } catch (geminiError: any) {
+            console.warn("Gemini model execution failed, falling back to OpenRouter:", geminiError?.message || geminiError);
+            lastError = geminiError;
+          }
+        }
+
+        // 2. Fallback to OpenRouter (gpt-4o-mini)
+        if (!completion && openRouterApiKey) {
+          try {
+            const openRouterClient = new OpenAI({
+              baseURL: "https://openrouter.ai/api/v1",
+              apiKey: openRouterApiKey,
+            });
+            completion = await openRouterClient.chat.completions.create({
+              model: "openai/gpt-4o-mini",
+              response_format: { type: 'json_object' },
+              messages: chatMessages,
+            });
+          } catch (openRouterError: any) {
+            console.error("OpenRouter model execution failed:", openRouterError?.message || openRouterError);
+            lastError = openRouterError;
+          }
+        }
+
+        if (!completion || !completion.choices || completion.choices.length === 0) {
+          throw new Error(lastError?.message || "Failed to generate AI trip plan from AI providers. Please check your API keys.");
+        }
+
+        console.log("AI Generation Response:", completion.choices[0].message);
         const message = completion.choices[0].message;
         let parsedContent;
         try {
